@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Shipping Fraud Detection System</title>
+    <link rel="icon" type="image/x-icon" href="../../SFD.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .preview-note {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 10000;
+        }
+        
+        /* Welcome Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 650px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+        
+        .modal-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .welcome-section {
+            margin-bottom: 25px;
+        }
+        
+        .welcome-section h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .welcome-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .welcome-section li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .welcome-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .requirements-box {
+            background: #f0f9ff;
+            border-left: 4px solid #6BB6E7;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .requirements-box h3 {
+            color: #1E5C7A;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .requirements-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .requirements-box li {
+            padding: 5px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+        }
+        
+        .requirements-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #6BB6E7;
+            font-weight: bold;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .warning-box strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .warning-box p {
+            color: #856404;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .modal-footer {
+            padding: 20px 30px 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(107, 182, 231, 0.4);
+        }
+        
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 182, 231, 0.5);
+        }
+        
+        .modal-btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px solid #ddd;
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-note">
+        📱 PREVIEW MODE - This is how the welcome modal looks
+    </div>
+    
+    <!-- Welcome Modal -->
+    <div class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="../SFDImage.png" alt="SFD Logo" style="width: 150px; height: 150px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+                <h1>🔍⚓ Shipping Fraud Detection System</h1>
+                <p>Claude-Powered Maritime Intelligence & Analysis Platform</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="welcome-section">
+                    <h2>🎯 System Overview</h2>
+                    <p style="color: #555; line-height: 1.6;">
+                        This is a sophisticated AI-powered system designed to assist law enforcement in detecting 
+                        and investigating maritime fraud using Automatic Identification System (AIS) data. 
+                        The system combines advanced language AI (Claude) with geographic analysis tools and 
+                        GPU-accelerated data processing.
+                    </p>
+                </div>
+                
+                <div class="welcome-section">
+                    <h2>✨ Key Capabilities</h2>
+                    <ul>
+                        <li>Natural language interaction - ask questions in plain English</li>
+                        <li>Detect 8 types of maritime anomalies (dark shipping, spoofing, rendezvous, etc.)</li>
+                        <li>Define and monitor custom geographic zones</li>
+                        <li>Generate interactive maps and visualizations</li>
+                        <li>Export professional reports (CSV, Excel, HTML)</li>
+                        <li>Track specific vessels by MMSI</li>
+                        <li>Identify high-risk vessels for investigation</li>
+                    </ul>
+                </div>
+                
+                <div class="requirements-box">
+                    <h3>📋 What You'll Need to Proceed:</h3>
+                    <ul>
+                        <li><strong>Claude API Key</strong> - From console.anthropic.com (free tier available)</li>
+                        <li><strong>Data Source</strong> - Either AWS S3 bucket or local folder with AIS data</li>
+                        <li><strong>AIS Data</strong> - CSV or Parquet format files</li>
+                        <li><strong>Backend Server</strong> - Must be running on port 8000</li>
+                    </ul>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Test Implementation Notice:</strong>
+                    <p>This system can only analyze data from <strong>October 15, 2024 through March 30, 2025</strong>. 
+                    Queries outside this date range will not return results.</p>
+                </div>
+                
+                <div class="welcome-section">
+                    <h2>🔒 For Law Enforcement Use Only</h2>
+                    <p style="color: #555; line-height: 1.6; font-size: 14px;">
+                        This system is designed exclusively for law enforcement investigations. 
+                        All data analysis must comply with applicable laws and regulations regarding 
+                        data privacy, maritime jurisdiction, and law enforcement procedures.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="alert('In the actual application, this will proceed to setup.')">
+                    OK - Proceed to Setup
+                </button>
+                <button class="modal-btn modal-btn-secondary" onclick="alert('In the actual application, this will attempt to close the tab.')">
+                    Close This Page
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

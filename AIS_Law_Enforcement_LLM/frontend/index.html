@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Fraud Detection System</title>
+    <link rel="icon" type="image/x-icon" href="../../SFD.ico">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 20px;
+        }
+        
+        .header-info {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+        
+        .map-panel {
+            flex: 1;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+        
+        .chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.user {
+            background: #e3f2fd;
+            margin-left: auto;
+        }
+        
+        .message.assistant {
+            background: #f5f5f5;
+            margin-right: auto;
+        }
+        
+        /* Popup Modal Styles */
+        .popup-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        .popup-header {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+        
+        .popup-header h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .popup-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .popup-body {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .checkbox-label:hover {
+            border-color: #6BB6E7;
+            background: #f0f9ff;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            margin-top: 4px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-text {
+            flex: 1;
+        }
+        
+        .checkbox-text strong {
+            display: block;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+        
+        .checkbox-text small {
+            display: block;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .popup-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(107, 182, 231, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px solid #ddd;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+            border-color: #bbb;
+        }
+        
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .message-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            background: #fafafa;
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .input-container input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 14px;
+        }
+        
+        .input-container input:focus {
+            outline: none;
+            border-color: #6BB6E7;
+        }
+        
+        .input-container button {
+            padding: 12px 30px;
+            background: #6BB6E7;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .input-container button:hover {
+            background: #5FA8DB;
+        }
+        
+        .input-container button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .tip {
+            font-size: 11px;
+            color: #888;
+            margin-top: 8px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6BB6E7;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        
+        /* Welcome Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 650px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+        
+        .modal-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .modal-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .welcome-section {
+            margin-bottom: 25px;
+        }
+        
+        .welcome-section h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .welcome-section ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .welcome-section li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .welcome-section li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        
+        .requirements-box {
+            background: #f0f9ff;
+            border-left: 4px solid #6BB6E7;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .requirements-box h3 {
+            color: #1E5C7A;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .requirements-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .requirements-box li {
+            padding: 5px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #555;
+        }
+        
+        .requirements-box li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #6BB6E7;
+            font-weight: bold;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .warning-box strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .warning-box p {
+            color: #856404;
+            margin: 0;
+            font-size: 14px;
+        }
+        
+        .modal-footer {
+            padding: 20px 30px 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+        
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #6BB6E7 0%, #5FA8DB 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(107, 182, 231, 0.4);
+        }
+        
+        .modal-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(107, 182, 231, 0.5);
+        }
+        
+        .modal-btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px solid #ddd;
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Modal -->
+    <div id="welcome-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="../SFDImage.png" alt="SFD Logo" style="width: 150px; height: 150px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;">
+                <h1>🔍⚓ Shipping Fraud Detection System</h1>
+                <p>Claude-Powered Maritime Intelligence & Analysis Platform</p>
+            </div>
+            
+            <div class="modal-body">
+                <div class="welcome-section">
+                    <h2>🎯 System Overview</h2>
+                    <p style="color: #555; line-height: 1.6;">
+                        This is a sophisticated AI-powered system designed to assist law enforcement in detecting 
+                        and investigating maritime fraud using Automatic Identification System (AIS) data. 
+                        The system combines advanced language AI (Claude) with geographic analysis tools and 
+                        GPU-accelerated data processing.
+                    </p>
+                </div>
+                
+                <div class="welcome-section">
+                    <h2>✨ Key Capabilities</h2>
+                    <ul>
+                        <li>Natural language interaction - ask questions in plain English</li>
+                        <li>Detect 8 types of maritime anomalies (dark shipping, spoofing, rendezvous, etc.)</li>
+                        <li>Define and monitor custom geographic zones</li>
+                        <li>Generate interactive maps and visualizations</li>
+                        <li>Export professional reports (CSV, Excel, HTML)</li>
+                        <li>Track specific vessels by MMSI</li>
+                        <li>Identify high-risk vessels for investigation</li>
+                    </ul>
+                </div>
+                
+                <div class="requirements-box">
+                    <h3>📋 What You'll Need to Proceed:</h3>
+                    <ul>
+                        <li><strong>Claude API Key</strong> - From console.anthropic.com (free tier available)</li>
+                        <li><strong>Data Source</strong> - Either AWS S3 bucket or local folder with AIS data</li>
+                        <li><strong>AIS Data</strong> - CSV or Parquet format files</li>
+                        <li><strong>Backend Server</strong> - Must be running on port 8000</li>
+                    </ul>
+                </div>
+                
+                <div class="warning-box">
+                    <strong>⚠️ Test Implementation Notice:</strong>
+                    <p>This system can only analyze data from <strong>October 15, 2024 through March 30, 2025</strong>. 
+                    Queries outside this date range will not return results.</p>
+                </div>
+                
+                <div class="welcome-section">
+                    <h2>🔒 For Law Enforcement Use Only</h2>
+                    <p style="color: #555; line-height: 1.6; font-size: 14px;">
+                        This system is designed exclusively for law enforcement investigations. 
+                        All data analysis must comply with applicable laws and regulations regarding 
+                        data privacy, maritime jurisdiction, and law enforcement procedures.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-primary" onclick="proceedToSetup()">
+                    OK - Proceed to Setup
+                </button>
+                <button class="modal-btn modal-btn-secondary" onclick="closeApplication()">
+                    Close This Page
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="../SFDImage.png" alt="SFD Logo" style="width: 40px; height: 40px;">
+            <h1>🔍⚓ Shipping Fraud Detection System</h1>
+        </div>
+        <div class="header-info">
+            <span id="session-info">Session: Loading...</span>
+            <span style="margin-left: 20px;">|</span>
+            <a href="files.html" style="color: white; text-decoration: none; margin-left: 20px; opacity: 0.9; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'">
+                📁 View Files
+            </a>
+            <span style="margin-left: 15px;">|</span>
+            <a href="#" onclick="returnToSetup(); return false;" style="color: white; text-decoration: none; margin-left: 15px; opacity: 0.9; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.9'" title="Reconfigure settings or update credentials">
+                ⚙️ Reconfigure
+            </a>
+        </div>
+    </div>
+    
+    <div class="main-container">
+        <div class="map-panel">
+            <div style="text-align: center;">
+                <h2 style="color: #999;">📍 Map Panel</h2>
+                <p style="color: #bbb; margin-top: 10px;">Interactive map with drawing tools<br>Coming in next version</p>
+            </div>
+        </div>
+        
+        <div class="chat-panel">
+            <div class="messages" id="messages">
+                <!-- Messages will be added here -->
+            </div>
+            
+            <div class="input-area">
+                <div class="input-container">
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        placeholder="Ask about AIS anomalies, vessels, or geographic areas..."
+                        autocomplete="off"
+                    >
+                    <button id="send-button" onclick="sendMessage()">Send</button>
+                </div>
+                <div class="tip">
+                    💡 Tip: Ask about specific dates (Oct 15, 2024 - Mar 30, 2025), regions, or vessel MMSIs
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        let sessionId = null;
+        let ws = null;
+        let isProcessing = false;
+        
+        // ============================================================
+        // ENHANCED DEBUGGING SYSTEM
+        // ============================================================
+        const DEBUG = {
+            enabled: true,
+            logs: [],
+            
+            log(category, message, data = null) {
+                const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+                const logEntry = {
+                    timestamp,
+                    category,
+                    message,
+                    data: data ? JSON.parse(JSON.stringify(data)) : null
+                };
+                
+                this.logs.push(logEntry);
+                
+                // Console output with color coding
+                const colors = {
+                    'INIT': 'color: #0066cc; font-weight: bold',
+                    'VALIDATION': 'color: #9900cc; font-weight: bold',
+                    'LOCALSTORAGE': 'color: #cc6600; font-weight: bold',
+                    'NAVIGATION': 'color: #00cc66; font-weight: bold',
+                    'ERROR': 'color: #cc0000; font-weight: bold',
+                    'SUCCESS': 'color: #00cc00; font-weight: bold'
+                };
+                
+                console.log(
+                    `%c[${timestamp}] [${category}] ${message}`,
+                    colors[category] || 'color: #666',
+                    data || ''
+                );
+                
+                // Update debug panel if exists
+                this.updateDebugPanel();
+            },
+            
+            getLogs() {
+                return this.logs;
+            },
+            
+            exportLogs() {
+                return JSON.stringify(this.logs, null, 2);
+            },
+            
+            updateDebugPanel() {
+                const panel = document.getElementById('debug-panel');
+                if (panel && panel.style.display !== 'none') {
+                    this.showDebugPanel();
+                }
+            },
+            
+            showDebugPanel() {
+                let panel = document.getElementById('debug-panel');
+                if (!panel) {
+                    panel = document.createElement('div');
+                    panel.id = 'debug-panel';
+                    panel.style.cssText = `
+                        position: fixed;
+                        top: 10px;
+                        right: 10px;
+                        width: 400px;
+                        max-height: 80vh;
+                        background: rgba(0, 0, 0, 0.95);
+                        color: #0f0;
+                        font-family: monospace;
+                        font-size: 11px;
+                        padding: 15px;
+                        border: 2px solid #0f0;
+                        border-radius: 5px;
+                        z-index: 10000;
+                        overflow-y: auto;
+                    `;
+                    document.body.appendChild(panel);
+                }
+                
+                panel.style.display = 'block';
+                
+                // Get localStorage data
+                const sessionId = localStorage.getItem('ais_session_id');
+                const config = localStorage.getItem('ais_config');
+                let configObj = null;
+                try {
+                    configObj = config ? JSON.parse(config) : null;
+                } catch (e) {
+                    configObj = { error: 'Failed to parse' };
+                }
+                
+                // Build debug info
+                let html = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong style="color: #0ff; font-size: 14px;">🐛 DEBUG PANEL</strong>
+                        <button onclick="DEBUG.hideDebugPanel()" style="background: #f00; color: #fff; border: none; padding: 3px 8px; cursor: pointer; border-radius: 3px;">✕</button>
+                    </div>
+                    
+                    <div style="border: 1px solid #0f0; padding: 8px; margin-bottom: 10px;">
+                        <strong style="color: #ff0;">LOCALSTORAGE:</strong><br/>
+                        <span style="color: ${sessionId ? '#0f0' : '#f00'}">
+                            Session ID: ${sessionId ? '✓ ' + sessionId.substr(0, 12) + '...' : '✗ MISSING'}
+                        </span><br/>
+                        <span style="color: ${config ? '#0f0' : '#f00'}">
+                            Config: ${config ? '✓ Present' : '✗ MISSING'}
+                        </span><br/>
+                    </div>
+                    
+                    ${configObj ? `
+                    <div style="border: 1px solid #0f0; padding: 8px; margin-bottom: 10px;">
+                        <strong style="color: #ff0;">CONFIG DETAILS:</strong><br/>
+                        <span style="color: ${configObj.claude_api_key ? '#0f0' : '#f00'}">
+                            Claude Key: ${configObj.claude_api_key ? '✓ ' + configObj.claude_api_key.substring(0, 15) + '...' : '✗ MISSING'}
+                        </span><br/>
+                        <span style="color: ${configObj.data_source ? '#0f0' : '#f00'}">
+                            Data Source: ${configObj.data_source || '✗ MISSING'}
+                        </span><br/>
+                        ${configObj.data_source === 'aws' ? `
+                            <span style="color: ${configObj.aws?.bucket ? '#0f0' : '#f00'}">
+                                AWS Bucket: ${configObj.aws?.bucket || '✗ MISSING'}
+                            </span><br/>
+                            <span style="color: ${configObj.aws?.access_key ? '#0f0' : '#f00'}">
+                                AWS Access Key: ${configObj.aws?.access_key ? '✓ Present' : '✗ MISSING'}
+                            </span><br/>
+                            <span style="color: ${configObj.aws?.secret_key ? '#0f0' : '#f00'}">
+                                AWS Secret Key: ${configObj.aws?.secret_key ? '✓ Present' : '✗ MISSING'}
+                            </span><br/>
+                        ` : ''}
+                        ${configObj.data_source === 'local' ? `
+                            <span style="color: ${configObj.local?.path ? '#0f0' : '#f00'}">
+                                Local Path: ${configObj.local?.path || '✗ MISSING'}
+                            </span><br/>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <div style="border: 1px solid #0f0; padding: 8px; margin-bottom: 10px;">
+                        <strong style="color: #ff0;">VALIDATION STATUS:</strong><br/>
+                        <span style="color: ${isSystemConfigured() ? '#0f0' : '#f00'}">
+                            ${isSystemConfigured() ? '✓ SYSTEM CONFIGURED' : '✗ SYSTEM NOT CONFIGURED'}
+                        </span>
+                    </div>
+                    
+                    <div style="border: 1px solid #0f0; padding: 8px; margin-bottom: 10px; max-height: 200px; overflow-y: auto;">
+                        <strong style="color: #ff0;">RECENT LOGS (${this.logs.length}):</strong><br/>
+                        ${this.logs.slice(-10).reverse().map(log => `
+                            <div style="margin: 5px 0; padding: 5px; background: rgba(255,255,255,0.1);">
+                                <span style="color: #0ff">[${log.timestamp}]</span>
+                                <span style="color: #ff0">[${log.category}]</span><br/>
+                                <span style="color: #fff">${log.message}</span>
+                                ${log.data ? `<br/><span style="color: #ccc; font-size: 10px;">${JSON.stringify(log.data).substring(0, 100)}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                        <button onclick="DEBUG.clearStorage()" style="background: #f00; color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-size: 10px;">Clear Storage</button>
+                        <button onclick="DEBUG.copyLogs()" style="background: #00f; color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-size: 10px;">Copy Logs</button>
+                        <button onclick="location.reload()" style="background: #0a0; color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-size: 10px;">Reload</button>
+                        <button onclick="DEBUG.testValidation()" style="background: #a0a; color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-size: 10px;">Test Validation</button>
+                    </div>
+                `;
+                
+                panel.innerHTML = html;
+            },
+            
+            hideDebugPanel() {
+                const panel = document.getElementById('debug-panel');
+                if (panel) {
+                    panel.style.display = 'none';
+                }
+            },
+            
+            clearStorage() {
+                if (confirm('Clear all localStorage? This will require reconfiguration.')) {
+                    this.log('LOCALSTORAGE', 'Clearing all localStorage');
+                    localStorage.clear();
+                    alert('Storage cleared! Reloading...');
+                    location.reload();
+                }
+            },
+            
+            copyLogs() {
+                const logs = this.exportLogs();
+                navigator.clipboard.writeText(logs).then(() => {
+                    alert('Logs copied to clipboard!');
+                }).catch(() => {
+                    alert('Failed to copy. Check console for logs.');
+                    console.log('DEBUG LOGS:', logs);
+                });
+            },
+            
+            testValidation() {
+                this.log('VALIDATION', 'Running manual validation test');
+                const result = isSystemConfigured();
+                alert(`Validation Result: ${result ? 'CONFIGURED ✓' : 'NOT CONFIGURED ✗'}\n\nCheck debug panel for details.`);
+                this.showDebugPanel();
+            }
+        };
+        
+        // Show debug panel on Ctrl+D or Cmd+D
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                DEBUG.showDebugPanel();
+            }
+        });
+        
+        /**
+         * Validate if configuration is complete
+         */
+        function isSystemConfigured() {
+            DEBUG.log('VALIDATION', '=== STARTING VALIDATION CHECK ===');
+            
+            const sessionId = localStorage.getItem('ais_session_id');
+            const savedConfig = localStorage.getItem('ais_config');
+            
+            DEBUG.log('LOCALSTORAGE', 'Retrieved localStorage items', {
+                hasSessionId: !!sessionId,
+                sessionIdLength: sessionId ? sessionId.length : 0,
+                hasConfig: !!savedConfig,
+                configLength: savedConfig ? savedConfig.length : 0
+            });
+            
+            // Must have both session and config
+            if (!sessionId || !savedConfig) {
+                DEBUG.log('VALIDATION', 'FAILED: Missing session or config', {
+                    sessionId: !!sessionId,
+                    savedConfig: !!savedConfig
+                });
+                return false;
+            }
+            
+            try {
+                const config = JSON.parse(savedConfig);
+                DEBUG.log('VALIDATION', 'Successfully parsed config', {
+                    hasClaudeKey: !!config.claude_api_key,
+                    claudeKeyLength: config.claude_api_key ? config.claude_api_key.length : 0,
+                    claudeKeyPreview: config.claude_api_key ? config.claude_api_key.substring(0, 10) + '...' : 'MISSING',
+                    dataSource: config.data_source,
+                    source: config.source,
+                    hasAws: !!config.aws,
+                    hasLocal: !!config.local
+                });
+                
+                // SPECIAL CASE: If configured from environment variables, we trust the backend
+                // The backend has already validated everything, so we just need session + config marker
+                if (config.source === 'environment_variables') {
+                    DEBUG.log('VALIDATION', '✅ CONFIGURED FROM ENVIRONMENT VARIABLES - Trusting backend validation');
+                    // Still check that we have the basic structure
+                    if (config.data_source && (config.aws || config.local)) {
+                        DEBUG.log('VALIDATION', '✅ Environment config valid - session ready');
+                        return true;
+                    } else {
+                        DEBUG.log('VALIDATION', 'FAILED: Environment config missing data_source or aws/local');
+                        return false;
+                    }
+                }
+                
+                // Standard validation for manually configured sessions
+                // Validate Claude API key (must exist and be non-empty, and not be placeholder)
+                if (!config.claude_api_key || 
+                    config.claude_api_key.trim() === '' || 
+                    config.claude_api_key === '[configured_from_env]') {
+                    DEBUG.log('VALIDATION', 'FAILED: Claude API key missing, empty, or placeholder', {
+                        exists: !!config.claude_api_key,
+                        isEmpty: config.claude_api_key ? config.claude_api_key.trim() === '' : 'N/A',
+                        isPlaceholder: config.claude_api_key === '[configured_from_env]'
+                    });
+                    return false;
+                }
+                
+                // Validate data source is selected
+                if (!config.data_source || config.data_source.trim() === '') {
+                    DEBUG.log('VALIDATION', 'FAILED: Data source not selected', {
+                        dataSource: config.data_source
+                    });
+                    return false;
+                }
+                
+                // Validate data source configuration
+                if (config.data_source === 'aws') {
+                    DEBUG.log('VALIDATION', 'Checking AWS configuration...');
+                    
+                    const hasValidAws = config.aws && 
+                                       config.aws.bucket && 
+                                       config.aws.bucket.trim() !== '' &&
+                                       config.aws.access_key && 
+                                       config.aws.access_key.trim() !== '' &&
+                                       config.aws.secret_key && 
+                                       config.aws.secret_key.trim() !== '';
+                    
+                    DEBUG.log('VALIDATION', 'AWS validation details', {
+                        hasAwsObject: !!config.aws,
+                        hasBucket: !!(config.aws && config.aws.bucket),
+                        bucketValue: config.aws ? config.aws.bucket : 'NO AWS OBJECT',
+                        hasAccessKey: !!(config.aws && config.aws.access_key),
+                        hasSecretKey: !!(config.aws && config.aws.secret_key),
+                        hasSessionToken: !!(config.aws && config.aws.session_token),
+                        valid: hasValidAws
+                    });
+                    
+                    if (!hasValidAws) {
+                        DEBUG.log('VALIDATION', 'FAILED: AWS configuration incomplete');
+                        return false;
+                    }
+                    DEBUG.log('VALIDATION', 'AWS configuration valid ✓');
+                } else if (config.data_source === 'local') {
+                    DEBUG.log('VALIDATION', 'Checking local configuration...');
+                    
+                    const hasValidLocal = config.local && 
+                                         config.local.path && 
+                                         config.local.path.trim() !== '';
+                    
+                    DEBUG.log('VALIDATION', 'Local validation details', {
+                        hasLocalObject: !!config.local,
+                        hasPath: !!(config.local && config.local.path),
+                        pathValue: config.local ? config.local.path : 'NO LOCAL OBJECT',
+                        valid: hasValidLocal
+                    });
+                    
+                    if (!hasValidLocal) {
+                        DEBUG.log('VALIDATION', 'FAILED: Local configuration incomplete');
+                        return false;
+                    }
+                    DEBUG.log('VALIDATION', 'Local configuration valid ✓');
+                } else {
+                    DEBUG.log('VALIDATION', 'FAILED: Unknown data source', {
+                        dataSource: config.data_source
+                    });
+                    return false;
+                }
+                
+                DEBUG.log('SUCCESS', '✓✓✓ ALL VALIDATION PASSED ✓✓✓');
+                return true;
+                
+            } catch (e) {
+                DEBUG.log('ERROR', 'Failed to parse config', {
+                    error: e.message,
+                    stack: e.stack
+                });
+                return false;
+            }
+        }
+        
+        /**
+         * Proceed to setup or chat (depending on configuration status)
+         */
+        function proceedToSetup() {
+            DEBUG.log('NAVIGATION', 'User clicked "OK - Proceed to Setup" button');
+            
+            // Hide modal with fade out animation
+            const modal = document.getElementById('welcome-modal');
+            modal.style.opacity = '0';
+            modal.style.transition = 'opacity 0.3s';
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                
+                DEBUG.log('NAVIGATION', 'Modal hidden, checking configuration...');
+                
+                // Check if system is fully configured
+                if (isSystemConfigured()) {
+                    DEBUG.log('NAVIGATION', '✓ System configured - loading chat interface');
+                    // Configuration is complete, initialize chat session
+                    initializeSession();
+                } else {
+                    DEBUG.log('NAVIGATION', '✗ System not configured - redirecting to setup.html');
+                    // Configuration incomplete, redirect to setup
+                    window.location.href = 'setup.html';
+                }
+            }, 300);
+        }
+        
+        /**
+         * Return to setup page (reconfiguration)
+         */
+        function returnToSetup() {
+            if (confirm('Go to settings to reconfigure? Your conversation history will be preserved.')) {
+                // Close websocket if open (will reconnect after reconfiguration)
+                if (ws) {
+                    ws.close();
+                }
+                // Redirect to setup with reconfigure flag
+                window.location.href = 'setup.html?reconfigure=true';
+            }
+        }
+        
+        /**
+         * Close the application window/tab
+         */
+        function closeApplication() {
+            // Attempt to close the window/tab
+            // Multiple methods for better browser compatibility
+            
+            // Method 1: Try to make window "closeable" by opening about:blank to self
+            try {
+                window.open('', '_self', '');
+                window.close();
+            } catch (e) {
+                // If that fails, try direct close
+                window.close();
+            }
+            
+            // If window.close() doesn't work (most modern browsers block this),
+            // show alternative instructions
+            setTimeout(() => {
+                if (!window.closed) {
+                    const modal = document.getElementById('welcome-modal');
+                    const modalBody = modal.querySelector('.modal-body');
+                    modalBody.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <h2 style="color: #333; margin-bottom: 20px;">🚪 To Close This Page</h2>
+                            <p style="color: #666; line-height: 1.8; font-size: 16px;">
+                                For security reasons, browsers don't allow websites to close tabs automatically.
+                            </p>
+                            <p style="color: #666; line-height: 1.8; font-size: 16px; margin-top: 15px;">
+                                Please use one of these methods:
+                            </p>
+                            <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
+                                <p style="color: #555; margin: 10px 0;">
+                                    <strong>Windows:</strong> Press <kbd style="background: #fff; padding: 3px 8px; border: 1px solid #ccc; border-radius: 3px;">Ctrl + W</kbd>
+                                </p>
+                                <p style="color: #555; margin: 10px 0;">
+                                    <strong>Mac:</strong> Press <kbd style="background: #fff; padding: 3px 8px; border: 1px solid #ccc; border-radius: 3px;">⌘ + W</kbd>
+                                </p>
+                                <p style="color: #555; margin: 10px 0;">
+                                    <strong>Or:</strong> Click the [X] button on your browser tab
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Update footer to show only OK button
+                    const modalFooter = modal.querySelector('.modal-footer');
+                    modalFooter.innerHTML = `
+                        <button class="modal-btn modal-btn-primary" onclick="location.reload()">
+                            Go Back
+                        </button>
+                    `;
+                }
+            }, 100);
+        }
+        
+        /**
+         * Check environment variables configuration and setup if available
+         */
+        async function checkAndSetupFromEnv() {
+            try {
+                DEBUG.log('ENV', 'Checking for environment variable configuration...');
+                const response = await fetch('http://localhost:8000/api/check-env-config');
+                const result = await response.json();
+                
+                if (result.env_configured && result.success) {
+                    DEBUG.log('ENV', '✅ Environment variables configured and connection successful');
+                    DEBUG.log('ENV', `Data source: ${result.data_source}`);
+                    
+                    // Setup from environment variables
+                    const setupResponse = await fetch('http://localhost:8000/api/setup-from-env', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const setupResult = await setupResponse.json();
+                    
+                    if (setupResult.success) {
+                        DEBUG.log('ENV', '✅ Setup from environment variables successful');
+                        DEBUG.log('ENV', `Session ID: ${setupResult.session_id}`);
+                        
+                        // Store session ID
+                        localStorage.setItem('ais_session_id', setupResult.session_id);
+                        
+                        // Store full config including AWS prefix and all settings
+                        const configToStore = {
+                            data_source: result.data_source,
+                            source: 'environment_variables',
+                            configured_at: new Date().toISOString()
+                        };
+                        
+                        // Include AWS config if present (includes prefix)
+                        if (setupResult.config && setupResult.config.aws) {
+                            configToStore.aws = setupResult.config.aws;
+                            DEBUG.log('ENV', `AWS Config saved:`, {
+                                bucket: setupResult.config.aws.bucket,
+                                prefix: setupResult.config.aws.prefix || '(empty)',
+                                region: setupResult.config.aws.region,
+                                hasAccessKey: !!setupResult.config.aws.access_key,
+                                hasSecretKey: !!setupResult.config.aws.secret_key
+                            });
+                        }
+                        
+                        // Include local config if present
+                        if (setupResult.config && setupResult.config.local) {
+                            configToStore.local = setupResult.config.local;
+                            DEBUG.log('ENV', `Local Config saved:`, {
+                                path: setupResult.config.local.path,
+                                file_format: setupResult.config.local.file_format
+                            });
+                        }
+                        
+                        // Mark as configured from environment variables
+                        // Note: API key is not returned for security, but backend has validated it
+                        configToStore.claude_api_key = '[configured_from_env]';
+                        DEBUG.log('ENV', 'Marked as configured from environment variables');
+                        
+                        localStorage.setItem('ais_config', JSON.stringify(configToStore));
+                        DEBUG.log('ENV', 'Configuration saved to localStorage');
+                        
+                        // Hide modal and initialize session
+                        const modal = document.getElementById('welcome-modal');
+                        modal.classList.add('hidden');
+                        modal.style.display = 'none';
+                        
+                        DEBUG.log('ENV', 'Initializing session from environment variables...');
+                        initializeSession();
+                        return true;
+                    } else {
+                        DEBUG.log('ENV', `❌ Setup from env failed: ${setupResult.error}`);
+                        return false;
+                    }
+                } else {
+                    DEBUG.log('ENV', '⚠️ Environment variables not configured or connection failed');
+                    if (result.env_configured && !result.success) {
+                        DEBUG.log('ENV', `Connection test failed: ${result.connection_test?.error || 'Unknown error'}`);
+                    }
+                    return false;
+                }
+            } catch (error) {
+                DEBUG.log('ENV', `❌ Error checking env config: ${error.message}`);
+                return false;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            DEBUG.log('INIT', '╔═══════════════════════════════════════════════════╗');
+            DEBUG.log('INIT', '║   PAGE LOAD - STARTING INITIALIZATION            ║');
+            DEBUG.log('INIT', '╚═══════════════════════════════════════════════════╝');
+            
+            DEBUG.log('INIT', 'DOM Content Loaded event fired');
+            DEBUG.log('INIT', 'Current URL: ' + window.location.href);
+            
+            // First, check for environment variable configuration
+            const envSetupSuccess = await checkAndSetupFromEnv();
+            
+            if (envSetupSuccess) {
+                DEBUG.log('INIT', '✅ INITIALIZED FROM ENVIRONMENT VARIABLES - SKIPPING MODAL');
+                // Session already initialized in checkAndSetupFromEnv
+            } else {
+                // Check if system is already configured from previous session
+                const configured = isSystemConfigured();
+                
+                if (configured) {
+                    DEBUG.log('INIT', '✅ SYSTEM IS CONFIGURED (PREVIOUS SESSION) - SKIPPING MODAL, LOADING CHAT');
+                    // Hide the modal immediately
+                    const modal = document.getElementById('welcome-modal');
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                    DEBUG.log('NAVIGATION', 'Modal hidden immediately');
+                    
+                    // Initialize session directly
+                    DEBUG.log('NAVIGATION', 'Calling initializeSession()...');
+                    initializeSession();
+                } else {
+                    DEBUG.log('INIT', '⚠️ SYSTEM NOT CONFIGURED - SHOWING WELCOME MODAL');
+                    // Personalize welcome message if user has a name saved
+                    personalizeWelcome();
+                    
+                    // Modal is shown by default (no 'hidden' class in HTML)
+                    // User will need to click "OK - Proceed to Setup"
+                    DEBUG.log('NAVIGATION', 'Welcome modal is visible, waiting for user action');
+                }
+            }
+            
+            // Handle Enter key in message input
+            document.getElementById('message-input').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !isProcessing) {
+                    sendMessage();
+                }
+            });
+            
+            DEBUG.log('INIT', 'Initialization complete. Press Ctrl+D to show debug panel.');
+        });
+        
+        /**
+         * Personalize welcome message with user's name
+         */
+        function personalizeWelcome() {
+            try {
+                const savedConfig = localStorage.getItem('ais_config');
+                if (savedConfig) {
+                    const config = JSON.parse(savedConfig);
+                    if (config.user_name && config.user_name.trim()) {
+                        const modalHeader = document.querySelector('#welcome-modal .modal-header');
+                        const greeting = document.createElement('p');
+                        greeting.style.cssText = 'font-size: 18px; margin-top: 10px; font-weight: 500; opacity: 1;';
+                        greeting.textContent = `Welcome back, ${config.user_name}!`;
+                        modalHeader.appendChild(greeting);
+                    }
+                }
+            } catch (error) {
+                console.error('Error personalizing welcome:', error);
+            }
+        }
+        
+        /**
+         * Initialize session
+         */
+        async function initializeSession() {
+            DEBUG.log('SESSION', '=== INITIALIZING SESSION ===');
+            
+            // Use centralized validation function
+            const isConfigured = isSystemConfigured();
+            DEBUG.log('SESSION', `System configured: ${isConfigured}`);
+            
+            if (!isConfigured) {
+                DEBUG.log('SESSION', '❌ System not configured - redirecting to setup');
+                showError('System not configured. Redirecting to setup...');
+                setTimeout(() => {
+                    window.location.href = 'setup.html';
+                }, 2000);
+                return;
+            }
+            
+            DEBUG.log('SESSION', '✅ System configured - proceeding with session initialization');
+            
+            // Get session ID (we know it exists from validation)
+            sessionId = localStorage.getItem('ais_session_id');
+            document.getElementById('session-info').textContent = `Session: ${sessionId.substr(0, 8)}...`;
+            
+            // Connect WebSocket
+            connectWebSocket();
+        }
+        
+        /**
+         * Connect to WebSocket
+         */
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://localhost:8000/ws/chat/${sessionId}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                // Personalized greeting
+                const savedConfig = localStorage.getItem('ais_config');
+                let greeting = 'Hello!';
+                try {
+                    if (savedConfig) {
+                        const config = JSON.parse(savedConfig);
+                        if (config.user_name && config.user_name.trim()) {
+                            greeting = `Hello, ${config.user_name}!`;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading user name:', e);
+                }
+                addMessage('assistant', `${greeting} I'm your AIS fraud detection assistant. I can help you analyze vessel movements and detect suspicious activities between October 15, 2024 and March 30, 2025. How can I assist you today?`);
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                showError('Connection error. Please check if the backend server is running.');
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket closed');
+            };
+        }
+        
+        /**
+         * Handle WebSocket messages
+         */
+        function handleWebSocketMessage(data) {
+            if (data.type === 'message') {
+                addMessage('assistant', data.content);
+                isProcessing = false;
+                updateSendButton();
+            } else if (data.type === 'tools_executing') {
+                addMessage('assistant', `🔧 Executing: ${data.tools.join(', ')}...`);
+            } else if (data.type === 'tool_result') {
+                console.log('Tool result:', data.tool_name, data.result);
+                
+                // Check if tool result contains popup request
+                if (data.result && data.result.action) {
+                    handlePopupRequest(data.result);
+                }
+            } else if (data.type === 'progress') {
+                // Display progress updates as status messages
+                addMessage('assistant', data.message, 'progress');
+                console.log('Progress:', data.stage, data.message, data.data);
+            }
+        }
+        
+        /**
+         * Handle popup requests from LLM tools
+         */
+        function handlePopupRequest(result) {
+            const action = result.action;
+            
+            if (action === 'show_date_picker') {
+                showDatePickerDialog(result);
+            } else if (action === 'show_vessel_type_picker') {
+                showVesselTypePickerDialog(result);
+            } else if (action === 'show_anomaly_picker') {
+                showAnomalyPickerDialog(result);
+            } else if (action === 'show_output_picker') {
+                showOutputPickerDialog(result);
+            }
+        }
+        
+        /**
+         * Show date picker dialog
+         */
+        function showDatePickerDialog(config) {
+            const modal = document.createElement('div');
+            modal.className = 'popup-modal';
+            modal.innerHTML = `
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <h2>📅 Select Date Range</h2>
+                        <p>${config.message || 'Please select a date range for analysis'}</p>
+                    </div>
+                    <div class="popup-body">
+                        <div class="form-group">
+                            <label>Start Date:</label>
+                            <input type="date" id="popup-start-date" 
+                                   value="${config.default_start || '2024-10-15'}" 
+                                   min="${config.min_date || '2024-10-15'}" 
+                                   max="${config.max_date || '2025-03-30'}">
+                        </div>
+                        <div class="form-group">
+                            <label>End Date:</label>
+                            <input type="date" id="popup-end-date" 
+                                   value="${config.default_end || '2024-10-17'}" 
+                                   min="${config.min_date || '2024-10-15'}" 
+                                   max="${config.max_date || '2025-03-30'}">
+                        </div>
+                        <div class="popup-actions">
+                            <button onclick="submitDateSelection(this)" class="btn-primary">Confirm</button>
+                            <button onclick="closePopup(this)" class="btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        /**
+         * Show vessel type picker dialog
+         */
+        function showVesselTypePickerDialog(config) {
+            const modal = document.createElement('div');
+            modal.className = 'popup-modal';
+            const optionsHtml = config.options.map(opt => `
+                <label class="checkbox-label">
+                    <input type="checkbox" value="${opt.value}" 
+                           ${config.default_types.includes(opt.value) ? 'checked' : ''}>
+                    <span class="checkbox-text">
+                        <strong>${opt.label}</strong>
+                        <small>${opt.description}</small>
+                    </span>
+                </label>
+            `).join('');
+            
+            modal.innerHTML = `
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <h2>🚢 Select Vessel Types</h2>
+                        <p>${config.message || 'Please select vessel types to analyze'}</p>
+                    </div>
+                    <div class="popup-body">
+                        <div class="checkbox-group">
+                            ${optionsHtml}
+                        </div>
+                        <div class="popup-actions">
+                            <button onclick="submitVesselTypeSelection(this)" class="btn-primary">Confirm</button>
+                            <button onclick="closePopup(this)" class="btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        /**
+         * Show anomaly type picker dialog
+         */
+        function showAnomalyPickerDialog(config) {
+            const modal = document.createElement('div');
+            modal.className = 'popup-modal';
+            const optionsHtml = config.options.map(opt => `
+                <label class="checkbox-label">
+                    <input type="checkbox" value="${opt.value}" 
+                           ${config.default_types.includes(opt.value) ? 'checked' : ''}>
+                    <span class="checkbox-text">
+                        <strong>${opt.label}</strong>
+                        <small>${opt.description}</small>
+                    </span>
+                </label>
+            `).join('');
+            
+            modal.innerHTML = `
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <h2>⚠️ Select Anomaly Types</h2>
+                        <p>${config.message || 'Please select anomaly types to detect'}</p>
+                    </div>
+                    <div class="popup-body">
+                        <div class="checkbox-group">
+                            ${optionsHtml}
+                        </div>
+                        <div class="popup-actions">
+                            <button onclick="submitAnomalySelection(this)" class="btn-primary">Confirm</button>
+                            <button onclick="closePopup(this)" class="btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        /**
+         * Show output format picker dialog
+         */
+        function showOutputPickerDialog(config) {
+            const modal = document.createElement('div');
+            modal.className = 'popup-modal';
+            const optionsHtml = config.options.map(opt => `
+                <label class="checkbox-label">
+                    <input type="checkbox" value="${opt.value}" 
+                           ${config.default_outputs.includes(opt.value) ? 'checked' : ''}>
+                    <span class="checkbox-text">
+                        <strong>${opt.label}</strong>
+                        <small>${opt.description}</small>
+                    </span>
+                </label>
+            `).join('');
+            
+            modal.innerHTML = `
+                <div class="popup-content">
+                    <div class="popup-header">
+                        <h2>📊 Select Output Formats</h2>
+                        <p>${config.message || 'Please select output formats'}</p>
+                    </div>
+                    <div class="popup-body">
+                        <div class="checkbox-group">
+                            ${optionsHtml}
+                        </div>
+                        <div class="popup-actions">
+                            <button onclick="submitOutputSelection(this)" class="btn-primary">Confirm</button>
+                            <button onclick="closePopup(this)" class="btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        
+        /**
+         * Submit date selection
+         */
+        function submitDateSelection(button) {
+            const modal = button.closest('.popup-modal');
+            const startDate = document.getElementById('popup-start-date').value;
+            const endDate = document.getElementById('popup-end-date').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            // Send selection back to LLM via WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'user_selection',
+                    selection_type: 'date_range',
+                    start_date: startDate,
+                    end_date: endDate
+                }));
+            }
+            
+            addMessage('user', `Selected date range: ${startDate} to ${endDate}`);
+            closePopup(button);
+        }
+        
+        /**
+         * Submit vessel type selection
+         */
+        function submitVesselTypeSelection(button) {
+            const modal = button.closest('.popup-modal');
+            const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+            const selected = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (selected.length === 0) {
+                alert('Please select at least one vessel type');
+                return;
+            }
+            
+            // Send selection back to LLM via WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'user_selection',
+                    selection_type: 'vessel_types',
+                    vessel_types: selected
+                }));
+            }
+            
+            addMessage('user', `Selected vessel types: ${selected.join(', ')}`);
+            closePopup(button);
+        }
+        
+        /**
+         * Submit anomaly selection
+         */
+        function submitAnomalySelection(button) {
+            const modal = button.closest('.popup-modal');
+            const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+            const selected = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (selected.length === 0) {
+                alert('Please select at least one anomaly type');
+                return;
+            }
+            
+            // Send selection back to LLM via WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'user_selection',
+                    selection_type: 'anomaly_types',
+                    anomaly_types: selected
+                }));
+            }
+            
+            addMessage('user', `Selected anomaly types: ${selected.join(', ')}`);
+            closePopup(button);
+        }
+        
+        /**
+         * Submit output selection
+         */
+        function submitOutputSelection(button) {
+            const modal = button.closest('.popup-modal');
+            const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+            const selected = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (selected.length === 0) {
+                alert('Please select at least one output format');
+                return;
+            }
+            
+            // Send selection back to LLM via WebSocket
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'user_selection',
+                    selection_type: 'output_formats',
+                    output_formats: selected
+                }));
+            }
+            
+            addMessage('user', `Selected outputs: ${selected.join(', ')}`);
+            closePopup(button);
+        }
+        
+        /**
+         * Close popup
+         */
+        function closePopup(button) {
+            const modal = button.closest('.popup-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        /**
+         * Send message
+         */
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing || !ws) return;
+            
+            // Add user message
+            addMessage('user', message);
+            
+            // Send to backend
+            ws.send(JSON.stringify({ message: message }));
+            
+            // Clear input
+            input.value = '';
+            
+            // Set processing state
+            isProcessing = true;
+            updateSendButton();
+        }
+        
+        /**
+         * Add message to chat
+         */
+        function addMessage(role, content, messageType = 'normal') {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            
+            if (messageType === 'progress') {
+                // Progress messages have different styling
+                messageDiv.className = 'message progress';
+                messageDiv.style.cssText = 'background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 10px; margin: 5px 0; font-style: italic;';
+            } else {
+                messageDiv.className = `message ${role}`;
+            }
+            
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            if (messageType === 'progress') {
+                header.textContent = '⏳ Processing...';
+                header.style.cssText = 'font-weight: 600; color: #1976d2;';
+            } else {
+                header.textContent = role === 'user' ? 'You' : 'AI Assistant';
+            }
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+            
+            messageDiv.appendChild(header);
+            messageDiv.appendChild(contentDiv);
+            messagesDiv.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        /**
+         * Show error
+         */
+        function showError(message) {
+            const messagesDiv = document.getElementById('messages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            messagesDiv.appendChild(errorDiv);
+        }
+        
+        /**
+         * Update send button state
+         */
+        function updateSendButton() {
+            const button = document.getElementById('send-button');
+            button.disabled = isProcessing;
+            button.textContent = isProcessing ? 'Processing...' : 'Send';
+        }
+    </script>
+</body>
+</html>
+
