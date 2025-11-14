@@ -1312,17 +1312,38 @@
             };
             
             ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                handleWebSocketMessage(data);
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('Failed to parse WebSocket message:', error);
+                    showError('Received invalid message from server. Please refresh the page.');
+                }
             };
             
             ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 showError('Connection error. Please check if the backend server is running.');
+                isProcessing = false;
+                updateSendButton();
             };
             
-            ws.onclose = () => {
-                console.log('WebSocket closed');
+            ws.onclose = (event) => {
+                console.log('WebSocket closed', event.code, event.reason);
+                isProcessing = false;
+                updateSendButton();
+                
+                // Handle specific close codes
+                if (event.code === 1008) {
+                    // Session not found - redirect to setup
+                    showError('Session expired or not found. Redirecting to setup...');
+                    setTimeout(() => {
+                        window.location.href = 'setup.html';
+                    }, 2000);
+                } else if (event.code !== 1000) {
+                    // Abnormal closure - show error but don't redirect
+                    showError('Connection closed unexpectedly. Please refresh the page.');
+                }
             };
         }
         
@@ -1330,12 +1351,17 @@
          * Handle WebSocket messages
          */
         function handleWebSocketMessage(data) {
+            if (!data || typeof data !== 'object') {
+                console.error('Invalid WebSocket message format:', data);
+                return;
+            }
+            
             if (data.type === 'message') {
                 addMessage('assistant', data.content);
                 isProcessing = false;
                 updateSendButton();
             } else if (data.type === 'tools_executing') {
-                addMessage('assistant', `🔧 Executing: ${data.tools.join(', ')}...`);
+                addMessage('assistant', `🔧 Executing: ${data.tools ? data.tools.join(', ') : 'tools'}...`);
             } else if (data.type === 'tool_result') {
                 console.log('Tool result:', data.tool_name, data.result);
                 
@@ -1343,10 +1369,24 @@
                 if (data.result && data.result.action) {
                     handlePopupRequest(data.result);
                 }
+                
+                // Check if tool result contains error
+                if (data.result && data.result.error) {
+                    showError(`Tool execution error: ${data.result.error}`);
+                    isProcessing = false;
+                    updateSendButton();
+                }
             } else if (data.type === 'progress') {
                 // Display progress updates as status messages
-                addMessage('assistant', data.message, 'progress');
+                addMessage('assistant', data.message || 'Processing...', 'progress');
                 console.log('Progress:', data.stage, data.message, data.data);
+            } else if (data.type === 'error') {
+                // Handle explicit error messages from backend
+                showError(data.message || 'An error occurred');
+                isProcessing = false;
+                updateSendButton();
+            } else {
+                console.warn('Unknown WebSocket message type:', data.type, data);
             }
         }
         
@@ -1530,12 +1570,21 @@
             
             // Send selection back to LLM via WebSocket
             if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'user_selection',
-                    selection_type: 'date_range',
-                    start_date: startDate,
-                    end_date: endDate
-                }));
+                try {
+                    ws.send(JSON.stringify({
+                        type: 'user_selection',
+                        selection_type: 'date_range',
+                        start_date: startDate,
+                        end_date: endDate
+                    }));
+                } catch (error) {
+                    console.error('Failed to send date selection:', error);
+                    showError('Failed to send selection. Please try again.');
+                    return;
+                }
+            } else {
+                showError('Not connected to server. Please refresh the page.');
+                return;
             }
             
             addMessage('user', `Selected date range: ${startDate} to ${endDate}`);
@@ -1557,11 +1606,20 @@
             
             // Send selection back to LLM via WebSocket
             if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'user_selection',
-                    selection_type: 'vessel_types',
-                    vessel_types: selected
-                }));
+                try {
+                    ws.send(JSON.stringify({
+                        type: 'user_selection',
+                        selection_type: 'vessel_types',
+                        vessel_types: selected
+                    }));
+                } catch (error) {
+                    console.error('Failed to send vessel type selection:', error);
+                    showError('Failed to send selection. Please try again.');
+                    return;
+                }
+            } else {
+                showError('Not connected to server. Please refresh the page.');
+                return;
             }
             
             addMessage('user', `Selected vessel types: ${selected.join(', ')}`);
@@ -1583,11 +1641,20 @@
             
             // Send selection back to LLM via WebSocket
             if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'user_selection',
-                    selection_type: 'anomaly_types',
-                    anomaly_types: selected
-                }));
+                try {
+                    ws.send(JSON.stringify({
+                        type: 'user_selection',
+                        selection_type: 'anomaly_types',
+                        anomaly_types: selected
+                    }));
+                } catch (error) {
+                    console.error('Failed to send anomaly selection:', error);
+                    showError('Failed to send selection. Please try again.');
+                    return;
+                }
+            } else {
+                showError('Not connected to server. Please refresh the page.');
+                return;
             }
             
             addMessage('user', `Selected anomaly types: ${selected.join(', ')}`);
@@ -1609,11 +1676,20 @@
             
             // Send selection back to LLM via WebSocket
             if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'user_selection',
-                    selection_type: 'output_formats',
-                    output_formats: selected
-                }));
+                try {
+                    ws.send(JSON.stringify({
+                        type: 'user_selection',
+                        selection_type: 'output_formats',
+                        output_formats: selected
+                    }));
+                } catch (error) {
+                    console.error('Failed to send output selection:', error);
+                    showError('Failed to send selection. Please try again.');
+                    return;
+                }
+            } else {
+                showError('Not connected to server. Please refresh the page.');
+                return;
             }
             
             addMessage('user', `Selected outputs: ${selected.join(', ')}`);
@@ -1637,20 +1713,33 @@
             const input = document.getElementById('message-input');
             const message = input.value.trim();
             
-            if (!message || isProcessing || !ws) return;
+            if (!message || isProcessing) return;
             
-            // Add user message
-            addMessage('user', message);
+            // Check WebSocket connection state
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                showError('Not connected to server. Please refresh the page.');
+                return;
+            }
             
-            // Send to backend
-            ws.send(JSON.stringify({ message: message }));
-            
-            // Clear input
-            input.value = '';
-            
-            // Set processing state
-            isProcessing = true;
-            updateSendButton();
+            try {
+                // Add user message
+                addMessage('user', message);
+                
+                // Send to backend
+                ws.send(JSON.stringify({ message: message }));
+                
+                // Clear input
+                input.value = '';
+                
+                // Set processing state
+                isProcessing = true;
+                updateSendButton();
+            } catch (error) {
+                console.error('Failed to send message:', error);
+                showError('Failed to send message. Please try again.');
+                isProcessing = false;
+                updateSendButton();
+            }
         }
         
         /**

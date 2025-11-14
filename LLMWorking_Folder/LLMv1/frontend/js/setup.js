@@ -166,6 +166,34 @@ function gatherConfig() {
 }
 
 /**
+ * Validate that a path is a full absolute path
+ */
+function isValidFullPath(path) {
+    if (!path || !path.trim()) {
+        return false;
+    }
+    
+    const trimmedPath = path.trim();
+    
+    // Check for Windows absolute path (starts with drive letter)
+    if (trimmedPath.match(/^[A-Za-z]:\\/)) {
+        return true;
+    }
+    
+    // Check for Unix/Mac absolute path (starts with /)
+    if (trimmedPath.startsWith('/')) {
+        return true;
+    }
+    
+    // Check for UNC path (Windows network path)
+    if (trimmedPath.startsWith('\\\\')) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * Validate configuration
  */
 function validateConfig(config) {
@@ -188,6 +216,29 @@ function validateConfig(config) {
     } else if (config.data_source === 'local') {
         if (!config.local.path) {
             return { valid: false, message: 'Local data folder path is required' };
+        }
+        
+        // Validate that the path is a full absolute path
+        if (!isValidFullPath(config.local.path)) {
+            return { 
+                valid: false, 
+                message: 'Local data folder path must be a full absolute path.\n\n' +
+                         'Windows: Start with drive letter (e.g., C:\\AIS_Data)\n' +
+                         'Mac/Linux: Start with / (e.g., /home/user/ais_data)'
+            };
+        }
+    }
+    
+    // Validate output folder if provided
+    if (config.output_folder && config.output_folder.trim()) {
+        if (!isValidFullPath(config.output_folder)) {
+            return {
+                valid: false,
+                message: 'Output folder path must be a full absolute path.\n\n' +
+                         'Windows: Start with drive letter (e.g., C:\\Users\\YourName\\Output)\n' +
+                         'Mac/Linux: Start with / (e.g., /home/user/output)\n\n' +
+                         'Or leave blank to use default location.'
+            };
         }
     }
     
@@ -212,120 +263,170 @@ function showStatus(message, type) {
 
 /**
  * Browse for output folder
- * 
- * Similar to SFD_GUI.py's browse_output_directory() - provides a simple folder selection experience.
- * 
- * NOTE: Due to browser security restrictions, we cannot use showDirectoryPicker() for write access.
- * This function attempts to use the File System Access API in read mode to help users select a folder,
- * then they can verify/complete the full path for write access.
+ * Uses File System Access API to select a folder and attempts to resolve full path
+ * Since browsers don't expose full paths directly, we try to build it from the directory handle
  */
 async function browseOutputFolder() {
     const input = document.getElementById('output-folder');
     const currentPath = input.value;
     
     try {
-        // Try to use File System Access API (read mode) to help user select folder
-        // Even though we need write access, this helps them pick the right location
         if ('showDirectoryPicker' in window) {
+            const dirHandle = await window.showDirectoryPicker({
+                mode: 'read'  // Read mode - we'll use this as a starting point
+            });
+            
+            const folderName = dirHandle.name;
+            
+            // Try to resolve the full path by walking up the directory tree
+            let fullPath = '';
             try {
-                const dirHandle = await window.showDirectoryPicker({
-                    mode: 'read'  // Read mode - we'll use this as a starting point
-                });
+                // Attempt to build path by querying parent directories
+                const pathParts = [folderName];
+                let currentHandle = dirHandle;
                 
-                const folderName = dirHandle.name;
+                // Try to walk up to root (limited to reasonable depth)
+                for (let i = 0; i < 20; i++) {
+                    try {
+                        // Try to get parent - this may not work in all browsers
+                        if (currentHandle.getParent) {
+                            const parentHandle = await currentHandle.getParent();
+                            if (parentHandle) {
+                                const parentName = parentHandle.name || '';
+                                if (parentName && parentName !== currentHandle.name) {
+                                    pathParts.unshift(parentName);
+                                    currentHandle = parentHandle;
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    } catch (e) {
+                        // Can't get parent, stop here
+                        break;
+                    }
+                }
                 
-                // Try to construct a reasonable path
-                // On Windows, try common locations
-                let suggestedPath = '';
-                
+                // Construct path based on platform
                 if (navigator.platform.toLowerCase().includes('win')) {
-                    // Windows - try to construct path
-                    if (currentPath && currentPath.includes('\\')) {
-                        // Use existing path structure
-                        const parts = currentPath.split('\\');
-                        parts[parts.length - 1] = folderName;
-                        suggestedPath = parts.join('\\');
+                    // Windows - check if we have a drive letter
+                    if (pathParts.length > 0 && pathParts[0].match(/^[A-Z]:$/)) {
+                        fullPath = pathParts.join('\\');
                     } else {
-                        // Default to Downloads folder (common Windows location)
-                        suggestedPath = `C:\\Users\\YourName\\Downloads\\${folderName}`;
+                        // No drive letter - construct from common Windows structure
+                        fullPath = `C:\\${pathParts.join('\\')}`;
                     }
                 } else {
-                    // Mac/Linux
-                    if (currentPath && currentPath.includes('/')) {
-                        const parts = currentPath.split('/');
-                        parts[parts.length - 1] = folderName;
-                        suggestedPath = parts.join('/');
-                    } else {
-                        // Default to home directory
-                        suggestedPath = `/home/yourname/${folderName}`;
-                    }
+                    // Mac/Linux - start with root
+                    fullPath = '/' + pathParts.join('/');
                 }
+            } catch (pathError) {
+                // If path resolution fails, use folder name and prompt user
+                debugLog('Could not resolve full path, using folder name', pathError);
+                fullPath = folderName;
+            }
+            
+            // If we couldn't get a proper full path, show a warning
+            const isFullPath = (navigator.platform.toLowerCase().includes('win') && fullPath.includes(':\\')) ||
+                               (!navigator.platform.toLowerCase().includes('win') && fullPath.startsWith('/'));
+            
+            if (!isFullPath) {
+                // Show alert asking user to enter full path manually
+                const message = 
+                    `📁 FOLDER SELECTED: ${folderName}\n\n` +
+                    `⚠️ IMPORTANT: Please enter the FULL ABSOLUTE PATH manually.\n\n` +
+                    `The browser cannot access the full file system path for security reasons.\n\n` +
+                    `Please type or paste the complete path:\n\n` +
+                    `Windows Examples:\n` +
+                    `• C:\\Users\\YourName\\Documents\\AIS_Output\n` +
+                    `• C:\\Users\\YourName\\Downloads\\AISDS_Output\n` +
+                    `• D:\\Output\\AIS\n\n` +
+                    `Mac/Linux Examples:\n` +
+                    `• /Users/yourname/Documents/AIS_Output\n` +
+                    `• /home/yourname/output\n\n` +
+                    `💡 Tip: Leave blank to use default: Downloads/AISDS_Output\n\n` +
+                    `The path must be absolute (start with drive letter on Windows or / on Mac/Linux).`;
                 
-                // Set the suggested path
-                input.value = suggestedPath;
+                alert(message);
                 
-                // Show helpful message
+                // Clear and focus input for manual entry
+                input.value = '';
+                input.focus();
+                input.placeholder = 'Enter full absolute path (or leave blank for default)';
+            } else {
+                // Set the resolved path
+                input.value = fullPath;
+                
+                // Show success message with verification prompt
                 showStatus(
-                    `📁 Folder Selected: ${folderName}\n\n` +
-                    `Suggested path: ${suggestedPath}\n\n` +
-                    `⚠️ Please verify or edit the FULL PATH above.\n\n` +
-                    `The browser shows the folder name, but you may need to adjust the full path.\n\n` +
+                    `✅ Folder Selected: ${folderName}\n\n` +
+                    `Resolved Path: ${fullPath}\n\n` +
+                    `⚠️ Please VERIFY this is the correct full path.\n\n` +
+                    `If the path looks incorrect, edit it manually.\n\n` +
                     `💡 Tip: Leave blank to use default: Downloads/AISDS_Output`,
-                    'info'
+                    'success'
                 );
                 
-                // Focus and select so user can edit
+                debugLog('Output folder selected', { name: folderName, resolvedPath: fullPath });
+                
+                // Focus and select so user can verify/edit
                 input.focus();
                 input.select();
-                
-                debugLog('Output folder selected via directory picker', { name: folderName, suggestedPath });
-                
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    // User cancelled - this is normal
-                    debugLog('Output folder selection cancelled by user');
-                    return;
-                }
-                throw err; // Re-throw to fallback handler
             }
+            
         } else {
             // Fallback: Browser doesn't support folder picker
-            throw new Error('Folder picker not supported');
+            const message = 
+                '📁 OUTPUT FOLDER SELECTION\n\n' +
+                'Your browser doesn\'t support folder selection.\n\n' +
+                'Please manually enter the FULL ABSOLUTE PATH where you want to save results:\n\n' +
+                'Windows Examples:\n' +
+                '• C:\\Users\\YourName\\Documents\\AIS_Output\n' +
+                '• C:\\Users\\YourName\\Downloads\\AISDS_Output\n\n' +
+                'Mac/Linux Examples:\n' +
+                '• /Users/yourname/Documents/AIS_Output\n' +
+                '• /home/yourname/output\n\n' +
+                '💡 Tip: Leave blank to use default location:\n' +
+                '   Downloads/AISDS_Output\n\n' +
+                '⚠️ The path must be absolute (start with drive letter or /)\n\n' +
+                'The folder will be created automatically if it doesn\'t exist.';
+            
+            alert(message);
+            
+            // Focus the input so user can type
+            input.focus();
+            input.placeholder = 'Enter full absolute path (or leave blank for default)';
+            
+            // If there's no current value, select all; otherwise place cursor at end
+            if (!currentPath) {
+                input.select();
+            } else {
+                input.setSelectionRange(currentPath.length, currentPath.length);
+            }
+            
+            debugLog('Output folder browse - showing manual entry instructions');
         }
-    } catch (error) {
-        // Fallback: Show instructions for manual entry (like SFD_GUI.py's simple approach)
-        const message = 
-            '📁 OUTPUT FOLDER SELECTION\n\n' +
-            'Please enter the FULL PATH where you want to save results.\n\n' +
-            'Examples:\n' +
-            '• Windows: C:\\Users\\YourName\\Documents\\AIS_Output\n' +
-            '• Windows: C:\\Users\\YourName\\Downloads\\AISDS_Output\n' +
-            '• Mac: /Users/yourname/Documents/AIS_Output\n' +
-            '• Linux: /home/yourname/ais_output\n\n' +
-            '💡 Tip: Leave blank to use default location:\n' +
-            '   Downloads/AISDS_Output\n\n' +
-            'The folder will be created automatically if it doesn\'t exist.';
-        
-        alert(message);
-        
-        // Focus the input so user can type
-        input.focus();
-        
-        // If there's no current value, select all; otherwise place cursor at end
-        if (!currentPath) {
-            input.select();
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            // User cancelled - this is normal
+            debugLog('Output folder selection cancelled by user');
         } else {
-            input.setSelectionRange(currentPath.length, currentPath.length);
+            console.error('Folder selection error:', err);
+            showStatus('❌ Folder selection failed. Please enter the full path manually or leave blank for default.', 'error');
+            input.focus();
+            input.placeholder = 'Enter full absolute path (or leave blank for default)';
         }
-        
-        debugLog('Output folder browse - showing manual entry instructions');
     }
 }
 
 /**
  * Browse for local data folder
- * Similar to SFD_GUI.py's browse_data_directory() - simple folder selection
- * Uses File System Access API to select a folder (read-only access)
+ * Uses File System Access API to select a folder and attempts to resolve full path
+ * Since browsers don't expose full paths directly, we try to build it from the directory handle
  */
 async function browseLocalFolder() {
     const input = document.getElementById('local-path');
@@ -334,7 +435,6 @@ async function browseLocalFolder() {
     try {
         if ('showDirectoryPicker' in window) {
             // Modern browsers with File System Access API
-            // Similar to tkinter's filedialog.askdirectory() - opens native folder picker
             const dirHandle = await window.showDirectoryPicker({
                 mode: 'read'  // Read-only access for data folder
             });
@@ -342,68 +442,126 @@ async function browseLocalFolder() {
             // Get folder name
             const folderName = dirHandle.name;
             
-            // Try to construct full path similar to SFD_GUI.py's approach
-            // If there's already a path, try to preserve parent directory structure
+            // Try to resolve the full path by walking up the directory tree
             let fullPath = '';
-            
-            if (currentValue && currentValue.includes('\\')) {
-                // Windows path - preserve parent structure
-                const parts = currentValue.split('\\');
-                parts[parts.length - 1] = folderName;
-                fullPath = parts.join('\\');
-            } else if (currentValue && currentValue.includes('/')) {
-                // Unix/Mac path - preserve parent structure
-                const parts = currentValue.split('/');
-                parts[parts.length - 1] = folderName;
-                fullPath = parts.join('/');
-            } else {
-                // No existing path - try to construct reasonable default
-                if (navigator.platform.toLowerCase().includes('win')) {
-                    // Windows - try common data locations
-                    const userProfile = 'C:\\Users\\YourName'; // Placeholder
-                    fullPath = `${userProfile}\\${folderName}`;
-                } else {
-                    // Mac/Linux
-                    const homeDir = '/home/yourname'; // Placeholder
-                    fullPath = `${homeDir}/${folderName}`;
+            try {
+                // Attempt to build path by querying parent directories
+                const pathParts = [folderName];
+                let currentHandle = dirHandle;
+                
+                // Try to walk up to root (limited to reasonable depth)
+                for (let i = 0; i < 20; i++) {
+                    try {
+                        // Try to get parent - this may not work in all browsers
+                        if (currentHandle.getParent) {
+                            const parentHandle = await currentHandle.getParent();
+                            if (parentHandle) {
+                                const parentName = parentHandle.name || '';
+                                if (parentName && parentName !== currentHandle.name) {
+                                    pathParts.unshift(parentName);
+                                    currentHandle = parentHandle;
+                                } else {
+                                    break;
+                                }
+                            } else {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    } catch (e) {
+                        // Can't get parent, stop here
+                        break;
+                    }
                 }
+                
+                // Construct path based on platform
+                if (navigator.platform.toLowerCase().includes('win')) {
+                    // Windows - check if we have a drive letter
+                    if (pathParts.length > 0 && pathParts[0].match(/^[A-Z]:$/)) {
+                        fullPath = pathParts.join('\\');
+                    } else {
+                        // No drive letter - construct from common Windows structure
+                        fullPath = `C:\\${pathParts.join('\\')}`;
+                    }
+                } else {
+                    // Mac/Linux - start with root
+                    fullPath = '/' + pathParts.join('/');
+                }
+            } catch (pathError) {
+                // If path resolution fails, use folder name and prompt user
+                debugLog('Could not resolve full path, using folder name', pathError);
+                fullPath = folderName;
             }
             
-            // Set the path (user can edit if needed)
-            input.value = fullPath;
+            // If we couldn't get a proper full path, show a warning
+            const isFullPath = (navigator.platform.toLowerCase().includes('win') && fullPath.includes(':\\')) ||
+                               (!navigator.platform.toLowerCase().includes('win') && fullPath.startsWith('/'));
             
-            // Show success message
-            showStatus(
-                `✅ Folder Selected: ${folderName}\n\n` +
-                `Path: ${fullPath}\n\n` +
-                `💡 Please verify the full path above and adjust if needed.\n\n` +
-                `The folder should contain data files named by date (e.g., 2024-10-15.parquet)`,
-                'success'
-            );
-            
-            debugLog('Local folder selected', { name: folderName, path: fullPath });
-            
-            // Focus and select so user can verify/edit
-            input.focus();
-            input.select();
+            if (!isFullPath) {
+                // Show alert asking user to enter full path manually
+                const message = 
+                    `📁 FOLDER SELECTED: ${folderName}\n\n` +
+                    `⚠️ IMPORTANT: Please enter the FULL ABSOLUTE PATH manually.\n\n` +
+                    `The browser cannot access the full file system path for security reasons.\n\n` +
+                    `Please type or paste the complete path:\n\n` +
+                    `Windows Examples:\n` +
+                    `• C:\\AIS_Data\n` +
+                    `• C:\\Users\\YourName\\Documents\\ais_data\n` +
+                    `• D:\\Data\\AIS\n\n` +
+                    `Mac/Linux Examples:\n` +
+                    `• /Users/yourname/ais_data\n` +
+                    `• /home/yourname/Documents/ais_data\n` +
+                    `• /mnt/data/ais\n\n` +
+                    `The path must be absolute (start with drive letter on Windows or / on Mac/Linux).`;
+                
+                alert(message);
+                
+                // Clear and focus input for manual entry
+                input.value = '';
+                input.focus();
+                input.placeholder = 'Enter full absolute path (e.g., C:\\AIS_Data or /home/user/ais_data)';
+            } else {
+                // Set the resolved path
+                input.value = fullPath;
+                
+                // Show success message with verification prompt
+                showStatus(
+                    `✅ Folder Selected: ${folderName}\n\n` +
+                    `Resolved Path: ${fullPath}\n\n` +
+                    `⚠️ Please VERIFY this is the correct full path.\n\n` +
+                    `If the path looks incorrect, edit it manually.\n\n` +
+                    `The folder should contain data files named by date (e.g., 2024-10-15.parquet)`,
+                    'success'
+                );
+                
+                debugLog('Local folder selected', { name: folderName, resolvedPath: fullPath });
+                
+                // Focus and select so user can verify/edit
+                input.focus();
+                input.select();
+            }
             
         } else {
             // Fallback: Browser doesn't support folder picker
-            // Show instructions similar to SFD_GUI.py's simple approach
             alert(
                 '📁 DATA FOLDER SELECTION\n\n' +
                 'Your browser doesn\'t support folder selection.\n\n' +
-                'Please manually enter the FULL PATH to your data folder:\n\n' +
-                'Examples:\n' +
-                '• Windows: C:\\AIS_Data\n' +
-                '• Windows: C:\\Users\\YourName\\ais_data\n' +
-                '• Mac: /Users/yourname/ais_data\n' +
-                '• Linux: /home/yourname/ais_data\n\n' +
+                'Please manually enter the FULL ABSOLUTE PATH to your data folder:\n\n' +
+                'Windows Examples:\n' +
+                '• C:\\AIS_Data\n' +
+                '• C:\\Users\\YourName\\ais_data\n' +
+                '• D:\\Data\\AIS\n\n' +
+                'Mac/Linux Examples:\n' +
+                '• /Users/yourname/ais_data\n' +
+                '• /home/yourname/Documents/ais_data\n\n' +
                 'The folder should contain parquet or CSV files named by date:\n' +
                 '• 2024-10-15.parquet (or .csv)\n' +
-                '• ais-2024-10-15.parquet (or .csv)'
+                '• ais-2024-10-15.parquet (or .csv)\n\n' +
+                '⚠️ The path must be absolute (start with drive letter or /)'
             );
             input.focus();
+            input.placeholder = 'Enter full absolute path (e.g., C:\\AIS_Data or /home/user/ais_data)';
         }
     } catch (err) {
         if (err.name === 'AbortError') {
@@ -411,8 +569,9 @@ async function browseLocalFolder() {
             debugLog('Local folder selection cancelled by user');
         } else {
             console.error('Folder selection error:', err);
-            showStatus('❌ Folder selection failed. Please enter the path manually.', 'error');
+            showStatus('❌ Folder selection failed. Please enter the full path manually.', 'error');
             input.focus();
+            input.placeholder = 'Enter full absolute path manually';
         }
     }
 }
@@ -456,6 +615,10 @@ async function testAWSConnection() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config.aws)
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         
         const result = await response.json();
         
@@ -514,6 +677,10 @@ async function testLocalPath() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ local_directory: config.local.path })
         });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
         
         const result = await response.json();
         
@@ -595,6 +762,11 @@ async function saveAndContinue() {
         });
         
         debugLog('Backend response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+        }
         
         const result = await response.json();
         debugLog('Backend response data:', result);

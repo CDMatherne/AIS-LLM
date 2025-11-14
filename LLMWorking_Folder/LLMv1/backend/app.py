@@ -25,9 +25,36 @@ from datetime import datetime
 import uuid
 import logging
 from dotenv import load_dotenv
+import pandas as pd  # Import at module level for consistency
 
-# Set up logging
+# Load environment variables early
+load_dotenv()
+
+# Set up logging with console output for debugging
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+enable_console = os.getenv('ENABLE_CONSOLE_LOGGING', 'true').lower() == 'true'
+log_format = os.getenv('LOG_FORMAT', 'detailed')
+
+# Configure logging format
+if log_format == 'detailed':
+    log_format_str = '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
+else:
+    log_format_str = '%(asctime)s - %(levelname)s - %(message)s'
+
+# Set up logging with console handler for debugging
+logging.basicConfig(
+    level=getattr(logging, log_level, logging.INFO),
+    format=log_format_str,
+    handlers=[
+        logging.StreamHandler() if enable_console else logging.NullHandler()
+    ]
+)
+
 logger = logging.getLogger(__name__)
+
+# Log startup information
+if enable_console:
+    logger.info(f"Logging configured: Level={log_level}, Console={'enabled' if enable_console else 'disabled'}")
 
 # Environment variables loaded by config_manager
 from config_manager import get_config
@@ -256,6 +283,8 @@ class SetupRequest(BaseModel):
     aws: Optional[Dict[str, Any]] = None
     local: Optional[Dict[str, Any]] = None
     date_range: Dict[str, str]
+    output_folder: Optional[str] = None  # Optional custom output directory
+    user_name: Optional[str] = None  # Optional user name for personalization
 
 class ChatMessage(BaseModel):
     session_id: str
@@ -480,6 +509,17 @@ async def setup_system(config: SetupRequest):
         # Store analysis engine in session
         session = session_manager.get_session(session_id)
         session['analysis_engine'] = analysis_engine
+        
+        # Store output folder if provided
+        if config.output_folder:
+            session['output_directory'] = config.output_folder
+            # Update exporter with custom output directory
+            global exporter
+            exporter = AISExporter(output_directory=config.output_folder)
+        
+        # Store user name if provided
+        if config.user_name:
+            session['user_name'] = config.user_name
         
         # Send initial welcome message from Claude
         data_source_info = "AWS S3" if config.data_source == "aws" else "local storage"
@@ -838,32 +878,55 @@ async def chat(message: ChatMessage):
         interaction_logger.log_llm_response(response)
         
         # If Claude wants to use tools, execute them
-        if response.get("tool_calls"):
+        tool_calls = response.get("tool_calls", [])
+        if tool_calls and isinstance(tool_calls, list):
             tool_results = []
-            for tool_call in response["tool_calls"]:
-                result = await execute_tool(
-                    tool_call["name"],
-                    tool_call["input"],
-                    message.session_id
-                )
-                tool_results.append({
-                    "tool_call_id": tool_call["id"],
-                    "result": result
-                })
+            for tool_call in tool_calls:
+                # Validate tool_call structure
+                if not isinstance(tool_call, dict) or "name" not in tool_call or "input" not in tool_call or "id" not in tool_call:
+                    logger.warning(f"Invalid tool_call structure: {tool_call}")
+                    continue
+                
+                try:
+                    result = await execute_tool(
+                        tool_call["name"],
+                        tool_call["input"],
+                        message.session_id
+                    )
+                    tool_results.append({
+                        "tool_call_id": tool_call["id"],
+                        "result": result
+                    })
+                except Exception as tool_error:
+                    logger.error(f"Error executing tool {tool_call.get('name', 'unknown')}: {tool_error}")
+                    tool_results.append({
+                        "tool_call_id": tool_call.get("id", "unknown"),
+                        "result": {"error": str(tool_error)}
+                    })
             
             # Send results back to Claude
-            final_response = await agent.process_tool_results(tool_results)
-            
-            interaction_logger.end_interaction(success=True)
-            
-            return {
-                "message": final_response["message"],
-                "tool_results": tool_results,
-                "has_more_tools": len(final_response.get("tool_calls", [])) > 0
-            }
+            if tool_results:
+                try:
+                    final_response = await agent.process_tool_results(tool_results)
+                    if not isinstance(final_response, dict) or "message" not in final_response:
+                        logger.warning(f"Invalid final_response structure: {final_response}")
+                        final_response = {"message": "Tool execution completed, but received invalid response format."}
+                    
+                    interaction_logger.end_interaction(success=True)
+                    
+                    return {
+                        "message": final_response["message"],
+                        "tool_results": tool_results,
+                        "has_more_tools": len(final_response.get("tool_calls", [])) > 0
+                    }
+                except Exception as process_error:
+                    logger.error(f"Error processing tool results: {process_error}")
+                    interaction_logger.end_interaction(success=False)
+                    raise HTTPException(status_code=500, detail=f"Error processing tool results: {str(process_error)}")
         
         interaction_logger.end_interaction(success=True)
-        return {"message": response["message"]}
+        response_message = response.get("message", "")
+        return {"message": response_message}
         
     except Exception as e:
         logger.error(f"Chat error: {e}")
@@ -936,7 +999,7 @@ async def execute_tool(tool_name: str, tool_input: Dict[str, Any],
     
     try:
         # NEW: Check registry-based handlers first
-        if is_tool_registered(tool_name):
+        if TOOL_HANDLERS_PREFIX and 'is_tool_registered' in globals() and is_tool_registered(tool_name):
             logger.debug(f"Executing tool via registry: {tool_name}")
             handler = get_handler(tool_name)
             result = await handler(tool_input, session_id)
@@ -1652,7 +1715,24 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
     try:
         while True:
             # Receive message
-            data = await websocket.receive_json()
+            try:
+                data = await websocket.receive_json()
+            except ValueError as json_error:
+                logger.error(f"Invalid JSON received: {json_error}")
+                await websocket.send_json({
+                    "type": "error",
+                    "content": "Invalid message format. Please send valid JSON."
+                })
+                continue
+            
+            # Validate data structure
+            if not isinstance(data, dict):
+                logger.error(f"Invalid data type received: {type(data)}")
+                await websocket.send_json({
+                    "type": "error",
+                    "content": "Invalid message format. Expected JSON object."
+                })
+                continue
             
             # Handle user selection responses from popups
             if data.get("type") == "user_selection":
@@ -1683,53 +1763,105 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
             else:
                 message = data.get("message", "")
             
+            # Validate message is not empty
+            if not message or not message.strip():
+                await websocket.send_json({
+                    "type": "error",
+                    "content": "Message cannot be empty. Please provide a valid message."
+                })
+                continue
+            
             # Validate conversation history before processing new message
             # This ensures any orphaned tool_use blocks are cleaned up
-            agent._validate_conversation_history()
+            try:
+                if hasattr(agent, '_validate_conversation_history'):
+                    agent._validate_conversation_history()
+            except Exception as e:
+                logger.warning(f"Conversation history validation failed: {e}")
             
             # Process with Claude
             response = await agent.chat(message, session_context={})
             
-            # Send response
+            # Validate response structure
+            if not isinstance(response, dict):
+                raise ValueError(f"Invalid response type from agent: {type(response)}")
+            
+            # Send response (use get() with default to handle missing message key)
+            response_message = response.get("message", "")
             await websocket.send_json({
                 "type": "message",
-                "content": response["message"]
+                "content": response_message
             })
             
             # Execute any tool calls
-            if response.get("tool_calls"):
-                await websocket.send_json({
-                    "type": "tools_executing",
-                    "tools": [tc["name"] for tc in response["tool_calls"]]
-                })
+            tool_calls = response.get("tool_calls", [])
+            if tool_calls and isinstance(tool_calls, list):
+                # Validate tool_calls structure
+                valid_tool_calls = []
+                tool_names = []
+                for tc in tool_calls:
+                    if isinstance(tc, dict) and "name" in tc and "input" in tc and "id" in tc:
+                        valid_tool_calls.append(tc)
+                        tool_names.append(tc["name"])
+                    else:
+                        logger.warning(f"Invalid tool_call structure: {tc}")
                 
-                tool_results = []
-                for tool_call in response["tool_calls"]:
-                    result = await execute_tool(
-                        tool_call["name"],
-                        tool_call["input"],
-                        session_id,
-                        websocket=websocket  # Pass websocket for progress updates
-                    )
-                    tool_results.append({
-                        "tool_call_id": tool_call["id"],
-                        "tool_name": tool_call["name"],  # Include tool name for progress tracking
-                        "result": result
+                if valid_tool_calls:
+                    await websocket.send_json({
+                        "type": "tools_executing",
+                        "tools": tool_names
                     })
                     
-                    # Stream tool result
-                    await websocket.send_json({
-                        "type": "tool_result",
-                        "tool_name": tool_call["name"],
-                        "result": result
-                    })
-                
-                # Get Claude's interpretation
-                final_response = await agent.process_tool_results(tool_results)
-                await websocket.send_json({
-                    "type": "message",
-                    "content": final_response["message"]
-                })
+                    tool_results = []
+                    for tool_call in valid_tool_calls:
+                        try:
+                            result = await execute_tool(
+                                tool_call["name"],
+                                tool_call["input"],
+                                session_id,
+                                websocket=websocket  # Pass websocket for progress updates
+                            )
+                            tool_results.append({
+                                "tool_call_id": tool_call["id"],
+                                "tool_name": tool_call["name"],  # Include tool name for progress tracking
+                                "result": result
+                            })
+                            
+                            # Stream tool result
+                            await websocket.send_json({
+                                "type": "tool_result",
+                                "tool_name": tool_call["name"],
+                                "result": result
+                            })
+                        except Exception as tool_error:
+                            logger.error(f"Error executing tool {tool_call.get('name', 'unknown')}: {tool_error}")
+                            tool_results.append({
+                                "tool_call_id": tool_call.get("id", "unknown"),
+                                "tool_name": tool_call.get("name", "unknown"),
+                                "result": {"error": str(tool_error)}
+                            })
+                    
+                    # Get Claude's interpretation
+                    if tool_results:
+                        try:
+                            final_response = await agent.process_tool_results(tool_results)
+                            if isinstance(final_response, dict) and "message" in final_response:
+                                await websocket.send_json({
+                                    "type": "message",
+                                    "content": final_response["message"]
+                                })
+                            else:
+                                logger.warning(f"Invalid final_response structure: {final_response}")
+                                await websocket.send_json({
+                                    "type": "message",
+                                    "content": "Tool execution completed, but received invalid response format."
+                                })
+                        except Exception as process_error:
+                            logger.error(f"Error processing tool results: {process_error}")
+                            await websocket.send_json({
+                                "type": "message",
+                                "content": f"Error processing tool results: {str(process_error)}"
+                            })
     
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for session {session_id}")
@@ -1792,18 +1924,31 @@ async def startup_event():
     logger.info("Claude Model: Auto-detection enabled (will select best available model per session)")
     
     # Log registered tools
-    registered_tools = list_registered_tools()
-    logger.info(f"Tool Handler Registry: {len(registered_tools)} tools registered")
-    logger.debug(f"Registered tools: {', '.join(sorted(registered_tools))}")
+    try:
+        if TOOL_HANDLERS_PREFIX and 'list_registered_tools' in globals():
+            registered_tools = list_registered_tools()
+            logger.info(f"Tool Handler Registry: {len(registered_tools)} tools registered")
+            logger.debug(f"Registered tools: {', '.join(sorted(registered_tools))}")
+        else:
+            logger.warning("Tool handlers not available - list_registered_tools not imported")
+    except Exception as e:
+        logger.warning(f"Could not list registered tools: {e}")
     
     logger.info("Output Capabilities: Maps, Charts, Exports, Dynamic Visualizations")
     
     # Initialize data cache if data source is configured
     try:
-        config = load_config_from_env()
+        config = get_config()  # Use get_config() instead of non-existent load_config_from_env()
         if config and config.get('data_source') == 'aws':
+            # Create connector config dict (AISDataConnector expects specific format)
+            connector_config = {
+                'data_source': config.get('data_source'),
+                'aws': config.get('aws'),
+                'local': config.get('local'),
+                'date_range': config.get('date_range', {})
+            }
             # Create a temporary connector for cache initialization
-            temp_connector = AISDataConnector(config)
+            temp_connector = AISDataConnector(connector_config)
             data_cache = AISDataCache(temp_connector)
             
             # Initial sync - load all available data
