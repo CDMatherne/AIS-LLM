@@ -1,0 +1,84 @@
+# Core Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+websockets==12.0
+
+# Claude AI
+anthropic==0.7.7
+
+# Data Processing
+pandas>=2.2.3  # Python 3.14+ compatible
+pyarrow==14.0.1
+numpy==1.26.2
+
+# AWS Support
+boto3==1.29.7
+botocore==1.32.7
+
+# Geographic/Spatial
+shapely==2.0.2
+pyproj==3.6.1
+
+# Utilities
+python-dateutil==2.8.2
+pydantic==2.5.0
+requests==2.31.0
+python-dotenv==1.0.0
+
+# Visualization & Export
+matplotlib==3.8.2
+seaborn==0.13.0  # Statistical visualization (used in chart_creator.py)
+plotly==5.18.0
+folium==0.15.1
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+Pillow==10.1.0
+branca==0.7.0
+
+# =============================================================================
+# GPU Support (Optional but Recommended for Performance)
+# =============================================================================
+
+# NVIDIA GPU Support (CUDA)
+# Uncomment if you have NVIDIA GPU and want GPU acceleration
+# Install with: pip install --extra-index-url=https://pypi.nvidia.com cudf-cu11 cuml-cu11
+# cudf-cu11==23.10.0
+# cuml-cu11==23.10.0
+# cupy-cuda11x==12.3.0
+# dask-cudf==23.10.0
+
+# AMD GPU Support (ROCm/HIP)
+# Option 1: cupy-rocm (Linux primarily, Windows experimental)
+# Uncomment if you have AMD GPU and want GPU acceleration via ROCm
+# cupy-rocm-5-0==12.3.0
+
+# Option 2: PyHIP (Direct HIP access for AMD GPUs)
+# Uncomment for direct HIP runtime access
+# pyhip==1.0.0
+
+# =============================================================================
+# Installation Notes:
+# =============================================================================
+# 
+# Basic Install (CPU only):
+#   pip install -r requirements.txt
+#
+# NVIDIA GPU Install:
+#   1. Ensure CUDA Toolkit 11.8+ and compatible NVIDIA driver installed
+#   2. Uncomment NVIDIA lines above
+#   3. pip install -r requirements.txt
+#
+# AMD GPU Install (Linux):
+#   1. Ensure ROCm 5.0+ installed
+#   2. Uncomment AMD cupy-rocm line above
+#   3. pip install -r requirements.txt
+#
+# AMD GPU Install (Windows - Experimental):
+#   1. Install AMD HIP SDK from:
+#      https://www.amd.com/en/developer/resources/rocm-hub/hip-sdk.html
+#   2. Uncomment PyHIP line above
+#   3. pip install -r requirements.txt
+#
+# =============================================================================
+
