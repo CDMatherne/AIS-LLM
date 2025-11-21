@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Files - Shipping Fraud Detection System</title>
+    <link rel="icon" type="image/x-icon" href="../../SFD.ico">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            background: #f5f5f5;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            color: #333;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #667eea;
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+            color: #667eea;
+        }
+        
+        .header p {
+            margin: 0;
+            color: #000;
+        }
+        
+        .file-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .category-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .category-card h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .category-icon {
+            font-size: 24px;
+        }
+        
+        .file-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        
+        .file-item:hover {
+            background: #f8f9ff;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        
+        .file-meta {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 6px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-download {
+            background: #6BB6E7;
+            color: white;
+        }
+        
+        .btn-download:hover {
+            background: #5FA8DB;
+        }
+        
+        .btn-view {
+            background: #e6f7ff;
+            color: #1E5C7A;
+            border: 1px solid #6BB6E7;
+        }
+        
+        .btn-view:hover {
+            background: #d0f0ff;
+            border-color: #5FA8DB;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .refresh-btn {
+            background: #6BB6E7;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 auto 20px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #5FA8DB;
+            transform: translateY(-2px);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #1E5C7A;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            color: #6BB6E7;
+            text-decoration: underline;
+        }
+        
+        .output-folder-info {
+            background: #e6f7ff;
+            border-left: 4px solid #6BB6E7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .output-folder-info strong {
+            color: #0c5460;
+        }
+        
+        .output-folder-path {
+            font-family: monospace;
+            background: white;
+            padding: 8px;
+            border-radius: 3px;
+            margin-top: 5px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Chat</a>
+        
+        <div class="header">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+                <img src="../SFDLoad.png" alt="SFD Logo" style="width: 60px; height: 60px;">
+                <h1 style="margin: 0;">🔍⚓ Generated Files</h1>
+            </div>
+            <p>Download and manage your analysis outputs</p>
+        </div>
+        
+        <div class="output-folder-info">
+            <strong>📂 Output Folder:</strong>
+            <div class="output-folder-path" id="output-folder-path">Loading...</div>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadFiles()">
+            <span>🔄</span>
+            <span>Refresh File List</span>
+        </button>
+        
+        <div class="file-categories">
+            <!-- Interactive Maps -->
+            <div class="category-card">
+                <h3>
+                    <span class="category-icon">🗺️</span>
+                    <span>Interactive Maps</span>
+                </h3>
+                <ul class="file-list" id="maps-list">
+                    <li class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No maps generated yet</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Charts & Graphs -->
+            <div class="category-card">
+                <h3>
+                    <span class="category-icon">📊</span>
+                    <span>Charts & Graphs</span>
+                </h3>
+                <ul class="file-list" id="charts-list">
+                    <li class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No charts generated yet</div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Data Exports -->
+            <div class="category-card">
+                <h3>
+                    <span class="category-icon">📄</span>
+                    <span>Data Exports</span>
+                </h3>
+                <ul class="file-list" id="exports-list">
+                    <li class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No exports generated yet</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Frontend configuration - will be loaded from backend
+        let API_BASE_URL = 'http://localhost:8000';  // Default fallback
+        
+        // Load frontend configuration from backend
+        async function loadFrontendConfig() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/frontend-config`);
+                if (response.ok) {
+                    const config = await response.json();
+                    API_BASE_URL = config.api_base_url || API_BASE_URL;
+                    console.log(`Files page config loaded: API=${API_BASE_URL}`);
+                }
+            } catch (error) {
+                console.warn('Could not load frontend config, using defaults:', error.message);
+            }
+        }
+        
+        // Load files on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load frontend configuration first
+            await loadFrontendConfig();
+            
+            loadOutputFolder();
+            loadFiles();
+        });
+        
+        /**
+         * Load output folder path from config
+         */
+        function loadOutputFolder() {
+            const config = localStorage.getItem('ais_config');
+            if (config) {
+                try {
+                    const parsedConfig = JSON.parse(config);
+                    const folderPath = parsedConfig.output_folder || 'Not configured';
+                    document.getElementById('output-folder-path').textContent = folderPath;
+                } catch (e) {
+                    document.getElementById('output-folder-path').textContent = 'Error loading configuration';
+                }
+            } else {
+                document.getElementById('output-folder-path').textContent = 'Not configured';
+            }
+        }
+        
+        /**
+         * Load files from backend
+         */
+        async function loadFiles() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/files/list`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayFiles(data.files);
+                } else {
+                    console.error('Failed to load files:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading files:', error);
+            }
+        }
+        
+        /**
+         * Display files in categories
+         */
+        function displayFiles(files) {
+            const categories = {
+                maps: [],
+                charts: [],
+                exports: []
+            };
+            
+            // Categorize files
+            files.forEach(file => {
+                if (file.category === 'maps') {
+                    categories.maps.push(file);
+                } else if (file.category === 'charts') {
+                    categories.charts.push(file);
+                } else if (file.category === 'exports') {
+                    categories.exports.push(file);
+                }
+            });
+            
+            // Display each category
+            displayCategory('maps-list', categories.maps, '🗺️');
+            displayCategory('charts-list', categories.charts, '📊');
+            displayCategory('exports-list', categories.exports, '📄');
+        }
+        
+        /**
+         * Display files in a category
+         */
+        function displayCategory(listId, files, icon) {
+            const list = document.getElementById(listId);
+            
+            if (files.length === 0) {
+                list.innerHTML = `
+                    <li class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div>No files generated yet</div>
+                    </li>
+                `;
+                return;
+            }
+            
+            list.innerHTML = files.map(file => `
+                <li class="file-item">
+                    <div class="file-info">
+                        <div class="file-name">${icon} ${file.name}</div>
+                        <div class="file-meta">${formatFileSize(file.size)} • ${formatDate(file.modified)}</div>
+                    </div>
+                    <div class="file-actions">
+                        ${file.viewable ? `<a href="${API_BASE_URL}/api/files/view/${file.id}" target="_blank" class="btn-small btn-view">👁️ View</a>` : ''}
+                        <a href="${API_BASE_URL}/api/files/download/${file.id}" download="${file.name}" class="btn-small btn-download">⬇️ Download</a>
+                    </div>
+                </li>
+            `).join('');
+        }
+        
+        /**
+         * Format file size
+         */
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        /**
+         * Format date
+         */
+        function formatDate(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString();
+        }
+    </script>
+</body>
+</html>
+
