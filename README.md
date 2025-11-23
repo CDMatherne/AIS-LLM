@@ -848,3 +848,79 @@ For issues, questions, or contributions, please update the ISSUES thread.
 
 **Note**: This is a test implementation designed for demonstration purposes. For production use, additional security, scalability, and compliance measures should be implemented.
 
+
+
+Tasks:
+
+Make sure the program looks for cached/previously downloaded data before it automatically downloads from a data source
+
+fix the Unicode errors
+
+Create a "Downloading Data" status bar popup that builds a bar and depicts the current activity from when the user selects start analysis in the SFD_GUI until analysis begins post download
+(i.e. 2025-11-22 21:00:34,512 - SDF_GUI - INFO - 📡 STARTING DOWNLOAD PROCESS: NOAA AIS data from 2024-10-21 to 2024-10-23
+2025-11-22 21:00:34,524 - SDF_GUI - INFO - Download phase will be followed by extraction and conversion.
+2025-11-22 21:00:35,829 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-22 21:00:35,829 - SDF_GUI - INFO - ⬇️ DOWNLOADING: AIS_2024_10_21.zip (1/3)
+2025-11-22 21:01:12,073 - SDF_GUI - INFO - 📂 Download complete: AIS_2024_10_21.zip (1/3)
+2025-11-22 21:01:12,079 - SDF_GUI - INFO - 📦 EXTRACTING: AIS_2024_10_21.zip...
+2025-11-22 21:01:16,118 - SDF_GUI - INFO - 💾 CONVERTING: AIS_2024_10_21.csv to parquet format...
+2025-11-22 21:01:16,339 - SDF_GUI - INFO -    - File size: 875.5 MB
+2025-11-22 21:01:38,750 - SDF_GUI - INFO -    - Loaded 8380852 records from CSV
+2025-11-22 21:01:53,039 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-21.parquet
+etc...)
+
+
+
+Now we need to build out the Advanced analysis tools. Start with building out Tab 1: Additional Outputs
+Export Full Dataset to CSV: Export the complete analysis dataset to CSV format
+Generate Summary Report: Create a summary report with key findings and statistics
+Export Vessel Statistics: Export vessel-specific statistics to Excel format
+Generate Anomaly Timeline: Create a timeline visualization of anomalies
+
+Tab 2: Further Analysis
+Anomaly Correlation Analysis: Create a selection box method, where the user can select up to four elements for correlation: up to two Vessel Type(S), and up to two anomaly type(S).  The box should allow the user to select from all types of vessels in a pop-up window that includes all the options from the Vessel selection tab in the GUI, and a popup that has all the anomaly types from the GUI.  If the original analysis did not contain a vessel or anomaly type, that selection should be greyed out and not be selectable.
+Temporal Pattern Analysis: Analyze patterns over time, including hourly/daily distributions
+Vessel Behavior Clustering: Apply clustering algorithms to identify similar vessel behaviors
+Anomaly Frequency Analysis: Analyze frequency and distribution of different anomaly types
+
+Tab 3: Mapping Tools
+Full Spectrum Anomaly Map:
+Create a comprehensive map showing all anomalies with various visualization options
+Options: Show anomaly pins, Show heatmap overlay
+Vessel-Specific Maps:
+Create maps focused on specific vessels by MMSI
+Input: MMSI number
+Map type options: Path Map, Anomaly Map, Heatmap
+As part of this tab there should be a list of top ten vessels by anomaly type for each anomaly in the original analysis.  This should allow the user to copy and paste a vessel's MMSI from the list into the specific MMSI for map creation.
+
+As before, only anomaly types and vessel types included in the original analysis should be available
+
+Tab 4: Vessel-Specific Analysis
+Extended Time Range Analysis:
+Analyze additional days of data for a specific vessel beyond the current date range
+Inputs: MMSI, Additional Days (in a range using eh same range choosing method as the GUI. (Default is no additional days)
+(Placeholder)AI Predicted Path: Use AI to predict the next 48-hour path for a specific vessel, Input: MMSI number
+
+
+list the current options in the advanced analysis windows by tab
+
+Anomaly correlation:  Create a selection box method, where the user can select up to four elements for correlation: up to two Vessel Type(S), and up to two anomaly type(S).  The box should allow the user to select from all types of vessels in a pop-up window that includes all the options from the Vessel selection tab in the GUI, and a popup that has all the anomaly types from teh GUI.  If the origional analysis did not contain a vessel or anomaly type, that selection should be greyed out and not be selectable.
+
+
+
+Mapping:
+the user should have the ability to create new pathamps, heatmaps and anomaly maps using multiple filters and variables.  
+1) create path/anomaly/heat -maps for specific anomaly types and/or vessel types
+2) create path/anomaly/heat -maps for specific anomaly types for a specific vessel
+
+
+
+
+
+
+
+
+
+
+
+
