@@ -1,0 +1,372 @@
+2025-11-21 17:59:31,479 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 18:47:26,416 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 18:47:26,419 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 18:47:26,419 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 18:47:50,758 - SDF_GUI - WARNING - Missing dependencies: cudf<1.0  # GPU-accelerated DataFrame, cupy<8.0   # GPU-accelerated NumPy (for NVIDIA CUDA), cuml<1.0  # GPU-accelerated Machine Learning, pyhip
+2025-11-21 18:48:00,910 - SDF_GUI - INFO - Installing missing dependencies...
+2025-11-21 18:48:51,057 - SDF_GUI - ERROR - Failed to install dependencies:   error: subprocess-exited-with-error
+  
+  Getting requirements to build wheel did not run successfully.
+  exit code: 1
+  
+  [25 lines of output]
+  Traceback (most recent call last):
+    File "C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 389, in <module>
+      main()
+      ~~~~^^
+    File "C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 373, in main
+      json_out["return_val"] = hook(**hook_input["kwargs"])
+                               ~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\Lib\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 143, in get_requires_for_build_wheel
+      return hook(config_settings)
+    File "C:\Users\616180\AppData\Local\Temp\1\pip-build-env-rm23whzh\overlay\Lib\site-packages\setuptools\build_meta.py", line 331, in get_requires_for_build_wheel
+      return self._get_build_requires(config_settings, requirements=[])
+             ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\616180\AppData\Local\Temp\1\pip-build-env-rm23whzh\overlay\Lib\site-packages\setuptools\build_meta.py", line 301, in _get_build_requires
+      self.run_setup()
+      ~~~~~~~~~~~~~~^^
+    File "C:\Users\616180\AppData\Local\Temp\1\pip-build-env-rm23whzh\overlay\Lib\site-packages\setuptools\build_meta.py", line 512, in run_setup
+      super().run_setup(setup_script=setup_script)
+      ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\616180\AppData\Local\Temp\1\pip-build-env-rm23whzh\overlay\Lib\site-packages\setuptools\build_meta.py", line 317, in run_setup
+      exec(code, locals())
+      ~~~~^^^^^^^^^^^^^^^^
+    File "<string>", line 7, in <module>
+    File "C:\Users\616180\AppData\Local\Temp\1\pip-install-pqgvy78t\cupy_e41fb19524a54db1b4e17668871a06fb\cupy_setup_build.py", line 7, in <module>
+      from distutils import msvccompiler
+  ImportError: cannot import name 'msvccompiler' from 'distutils' (C:\Users\616180\AppData\Local\Temp\1\pip-build-env-rm23whzh\overlay\Lib\site-packages\setuptools\_distutils\__init__.py). Did you mean: 'ccompiler'?
+  [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+ERROR: Failed to build 'cupy' when getting requirements to build wheel
+
+2025-11-21 18:52:33,072 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 18:52:33,074 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 18:52:33,074 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 18:52:39,384 - SDF_GUI - WARNING - Missing dependencies: pyhip
+2025-11-21 18:54:16,566 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 18:54:16,568 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 18:54:16,568 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 18:54:22,060 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 19:13:46,909 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 19:13:46,911 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 19:13:46,911 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 19:13:55,097 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 19:15:14,509 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-21 19:15:14,510 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-21 19:15:14,511 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-21 19:15:14,526 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --data-source noaa --noaa-year 2024 --noaa-start-date 2024-10-15 --noaa-end-date 2024-10-17
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 19:15:15,304 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-21 19:15:15,342 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--data-source', 'noaa', '--noaa-year', '2024', '--noaa-start-date', '2024-10-15', '--noaa-end-date', '2024-10-17']
+2025-11-21 19:15:15,711 - SDF_GUI - INFO - Process started with PID: 7516
+2025-11-21 19:27:33,970 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 19:27:33,972 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 19:27:33,972 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 19:27:41,952 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 19:29:26,270 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-21 19:29:26,270 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-21 19:29:26,271 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-21 19:29:26,287 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --output-directory C:/AIS_Data/Output
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 19:30:31,167 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 19:30:31,169 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 19:30:31,169 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 19:30:38,190 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 19:41:11,443 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 19:41:11,446 - SDF_GUI - INFO - Adding pyarrow to requirements for NOAA data processing
+2025-11-21 19:41:11,446 - SDF_GUI - INFO - Adding requests to requirements for NOAA data processing
+2025-11-21 19:41:19,377 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 19:41:48,101 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-21 19:41:48,102 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-21 19:41:48,102 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-21 19:41:48,112 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --output-directory C:/AIS_Data/Output
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 20:03:22,502 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 20:03:29,394 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 20:04:07,236 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-21 20:04:07,237 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-21 20:04:07,238 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-21 20:04:07,252 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --output-directory C:/AIS_Data/Output
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 20:17:47,577 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 20:17:54,407 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 20:18:16,569 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-21 20:18:16,570 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-21 20:18:16,570 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-21 20:18:16,583 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 20:22:01,106 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-21 20:22:01,119 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-15', '--end-date', '2024-10-17', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-15_2024-10-17_1763774296_g2bh_4lt\\parquet']
+2025-11-21 20:22:01,120 - SDF_GUI - INFO - =========================
+2025-11-21 20:22:01,121 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-21 20:22:01,122 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-15_2024-10-17_1763774296_g2bh_4lt\parquet
+2025-11-21 20:22:01,122 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 20:22:01,123 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-21 20:22:01,317 - SDF_GUI - INFO - DEBUG: Process started with PID: 47504
+2025-11-21 20:22:01,318 - SDF_GUI - INFO - =========================
+2025-11-21 20:22:01,319 - SDF_GUI - INFO - Process started with PID: 47504
+2025-11-21 20:28:50,161 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 20:28:56,024 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-21 20:29:12,565 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-21 20:29:12,565 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-21 20:29:12,565 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-21 20:29:12,572 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --data-source noaa --noaa-year 2024 --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 20:32:12,687 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-21 20:32:12,708 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-15', '--end-date', '2024-10-17', '--data-source', 'noaa', '--noaa-year', '2024', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-15_2024-10-17_1763774952__juhb67l\\parquet']
+2025-11-21 20:32:12,710 - SDF_GUI - INFO - =========================
+2025-11-21 20:32:12,710 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-21 20:32:12,711 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --data-source noaa --noaa-year 2024 --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-15_2024-10-17_1763774952__juhb67l\parquet
+2025-11-21 20:32:12,711 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-21 20:32:12,712 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-21 20:32:12,870 - SDF_GUI - INFO - DEBUG: Process started with PID: 29316
+2025-11-21 20:32:12,871 - SDF_GUI - INFO - =========================
+2025-11-21 20:32:12,871 - SDF_GUI - INFO - Process started with PID: 29316
+2025-11-21 21:28:47,904 - SDF_GUI - INFO - Checking dependencies...
+2025-11-21 21:28:55,827 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-22 08:08:09,938 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 08:08:09,938 - SDF_GUI - INFO - Script path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 08:08:09,939 - SDF_GUI - INFO - Config path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 08:08:09,975 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --data-source local --data-directory C:/AIS_Data --output-directory C:/AIS_Data/Output --debug
+Working directory: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 08:08:10,951 - SDF_GUI - INFO - Using local data directory: C:/AIS_Data
+2025-11-22 08:08:11,160 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'C:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-15', '--end-date', '2024-10-17', '--data-source', 'local', '--data-directory', 'C:/AIS_Data', '--output-directory', 'C:/AIS_Data/Output', '--debug']
+2025-11-22 08:08:11,161 - SDF_GUI - INFO - =========================
+2025-11-22 08:08:11,162 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-22 08:08:11,162 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --data-source local --data-directory C:/AIS_Data --output-directory C:/AIS_Data/Output --debug
+2025-11-22 08:08:11,163 - SDF_GUI - INFO - DEBUG: Working directory: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 08:08:11,163 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-22 08:08:11,766 - SDF_GUI - INFO - DEBUG: Process started with PID: 32496
+2025-11-22 08:08:11,767 - SDF_GUI - INFO - =========================
+2025-11-22 08:08:11,767 - SDF_GUI - INFO - Process started with PID: 32496
+2025-11-22 08:09:10,322 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 08:09:10,322 - SDF_GUI - INFO - Script path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 08:09:10,323 - SDF_GUI - INFO - Config path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 08:09:10,338 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-15 --end-date 2024-10-17 --data-source noaa --noaa-year 2024 --output-directory C:/AIS_Data/Output --debug
+Working directory: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 13:44:14,943 - SDF_GUI - INFO - Checking dependencies...
+2025-11-22 13:44:25,090 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-22 13:44:57,974 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 13:44:57,974 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 13:44:57,974 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 13:44:57,983 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-18 --end-date 2024-10-20 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 13:44:58,360 - SDF_GUI - INFO - Created temporary directories:
+ - Base: C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-18_2024-10-20_1763837098_5bnr7pgh
+ - Parquet: C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-18_2024-10-20_1763837098_5bnr7pgh\parquet
+2025-11-22 13:44:58,363 - SDF_GUI - INFO - Downloading NOAA AIS data from 2024-10-18 to 2024-10-20
+2025-11-22 13:44:59,438 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-22 13:44:59,438 - SDF_GUI - INFO - Downloading AIS_2024_10_18.zip (1/3)
+2025-11-22 13:45:23,612 - SDF_GUI - INFO - Extracting AIS_2024_10_18.zip
+2025-11-22 13:45:27,640 - SDF_GUI - INFO - Converting AIS_2024_10_18.csv to parquet
+2025-11-22 13:46:02,135 - SDF_GUI - INFO - Successfully processed AIS_2024_10_18.zip
+2025-11-22 13:46:02,136 - SDF_GUI - INFO - Downloading AIS_2024_10_19.zip (2/3)
+2025-11-22 13:46:23,891 - SDF_GUI - INFO - Extracting AIS_2024_10_19.zip
+2025-11-22 13:46:28,714 - SDF_GUI - INFO - Converting AIS_2024_10_19.csv to parquet
+2025-11-22 13:47:03,683 - SDF_GUI - INFO - Successfully processed AIS_2024_10_19.zip
+2025-11-22 13:47:03,686 - SDF_GUI - INFO - Downloading AIS_2024_10_20.zip (3/3)
+2025-11-22 13:47:29,039 - SDF_GUI - INFO - Extracting AIS_2024_10_20.zip
+2025-11-22 13:47:36,764 - SDF_GUI - INFO - Converting AIS_2024_10_20.csv to parquet
+2025-11-22 13:48:20,081 - SDF_GUI - INFO - Successfully processed AIS_2024_10_20.zip
+2025-11-22 13:48:20,082 - SDF_GUI - INFO - Successfully processed 3/3 files
+2025-11-22 13:48:20,082 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-22 13:48:20,097 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-18', '--end-date', '2024-10-20', '--data-source', 'noaa', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-18_2024-10-20_1763837098_5bnr7pgh\\parquet']
+2025-11-22 13:48:20,098 - SDF_GUI - INFO - =========================
+2025-11-22 13:48:20,098 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-22 13:48:20,099 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-18 --end-date 2024-10-20 --data-source noaa --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-18_2024-10-20_1763837098_5bnr7pgh\parquet
+2025-11-22 13:48:20,100 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 13:48:20,101 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-22 13:48:20,298 - SDF_GUI - INFO - DEBUG: Process started with PID: 55860
+2025-11-22 13:48:20,299 - SDF_GUI - INFO - =========================
+2025-11-22 13:48:20,299 - SDF_GUI - INFO - Process started with PID: 55860
+2025-11-22 14:58:18,100 - SDF_GUI - INFO - Checking dependencies...
+2025-11-22 14:58:23,823 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-22 14:58:57,991 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 14:58:57,991 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 14:58:57,992 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 14:58:58,004 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 14:58:58,300 - SDF_GUI - INFO - Created temporary directories:
+ - Base: C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763841538_dn1kl7sm
+ - Parquet: C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763841538_dn1kl7sm\parquet
+2025-11-22 14:58:58,303 - SDF_GUI - INFO - Downloading NOAA AIS data from 2024-10-21 to 2024-10-23
+2025-11-22 14:58:59,301 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-22 14:58:59,302 - SDF_GUI - INFO - Downloading AIS_2024_10_21.zip (1/3)
+2025-11-22 14:59:17,951 - SDF_GUI - INFO - Extracting AIS_2024_10_21.zip
+2025-11-22 14:59:23,011 - SDF_GUI - INFO - Converting AIS_2024_10_21.csv to parquet
+2025-11-22 14:59:52,306 - SDF_GUI - INFO - Successfully processed AIS_2024_10_21.zip
+2025-11-22 14:59:52,307 - SDF_GUI - INFO - Downloading AIS_2024_10_22.zip (2/3)
+2025-11-22 15:00:17,661 - SDF_GUI - INFO - Extracting AIS_2024_10_22.zip
+2025-11-22 15:00:22,401 - SDF_GUI - INFO - Converting AIS_2024_10_22.csv to parquet
+2025-11-22 15:00:54,138 - SDF_GUI - INFO - Successfully processed AIS_2024_10_22.zip
+2025-11-22 15:00:54,138 - SDF_GUI - INFO - Downloading AIS_2024_10_23.zip (3/3)
+2025-11-22 15:01:18,034 - SDF_GUI - INFO - Extracting AIS_2024_10_23.zip
+2025-11-22 15:01:23,053 - SDF_GUI - INFO - Converting AIS_2024_10_23.csv to parquet
+2025-11-22 15:01:55,832 - SDF_GUI - INFO - Successfully processed AIS_2024_10_23.zip
+2025-11-22 15:01:55,833 - SDF_GUI - INFO - Successfully processed 3/3 files
+2025-11-22 15:01:55,833 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-22 15:01:55,836 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-21', '--end-date', '2024-10-23', '--data-source', 'noaa', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-21_2024-10-23_1763841538_dn1kl7sm\\parquet']
+2025-11-22 15:01:55,837 - SDF_GUI - INFO - =========================
+2025-11-22 15:01:55,837 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-22 15:01:55,837 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763841538_dn1kl7sm\parquet
+2025-11-22 15:01:55,838 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 15:01:55,838 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-22 15:01:56,069 - SDF_GUI - INFO - DEBUG: Process started with PID: 39296
+2025-11-22 15:01:56,069 - SDF_GUI - INFO - =========================
+2025-11-22 15:01:56,070 - SDF_GUI - INFO - Process started with PID: 39296
+2025-11-22 15:01:56,403 - SDF_GUI - INFO - Starting output capture for subprocess
+2025-11-22 15:01:56,406 - SDF_GUI - INFO - Started stdout reading thread
+2025-11-22 15:01:56,407 - SDF_GUI - INFO - Started stderr reading thread
+2025-11-22 15:01:56,407 - SDF_GUI - INFO - Starting to process output queues
+2025-11-22 15:06:29,186 - SDF_GUI - INFO - Process exited with code 101, reading remaining output
+2025-11-22 15:06:29,248 - SDF_GUI - INFO - Stderr reader detected process exit
+2025-11-22 15:06:29,265 - SDF_GUI - INFO - Stderr reader thread exiting
+2025-11-22 15:06:29,267 - SDF_GUI - INFO - Stdout reader detected process exit
+2025-11-22 15:06:29,289 - SDF_GUI - INFO - Stdout reader thread exiting
+2025-11-22 15:06:29,299 - SDF_GUI - INFO - Setting up analysis completion UI with output_directory=C:/AIS_Data/Output, success=True
+2025-11-22 15:06:29,944 - SDF_GUI - INFO - ProgressWindow: conduct_additional_analysis requested
+2025-11-22 15:06:29,984 - SDF_GUI - INFO - Found parent with conduct_additional_analysis method: <__main__.SDFGUI object at 0x000002428EF8C1A0>
+2025-11-22 15:06:30,852 - SDF_GUI - INFO - Opening advanced analytical tools for additional analysis
+2025-11-22 20:09:44,637 - SDF_GUI - INFO - Checking dependencies...
+2025-11-22 20:09:56,700 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-22 20:10:33,270 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 20:10:33,271 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 20:10:33,271 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 20:10:33,284 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 20:10:33,598 - SDF_GUI - INFO - Created temporary directories:
+ - Base: C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763860233_cbm3_t5a
+ - Parquet: C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763860233_cbm3_t5a\parquet
+2025-11-22 20:10:33,599 - SDF_GUI - INFO - Downloading NOAA AIS data from 2024-10-21 to 2024-10-23
+2025-11-22 20:10:34,736 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-22 20:10:34,737 - SDF_GUI - INFO - Downloading AIS_2024_10_21.zip (1/3)
+2025-11-22 20:11:16,382 - SDF_GUI - INFO - Extracting AIS_2024_10_21.zip
+2025-11-22 20:11:22,867 - SDF_GUI - INFO - Converting AIS_2024_10_21.csv to parquet
+2025-11-22 20:12:01,980 - SDF_GUI - INFO - Successfully processed AIS_2024_10_21.zip
+2025-11-22 20:12:01,981 - SDF_GUI - INFO - Downloading AIS_2024_10_22.zip (2/3)
+2025-11-22 20:12:44,151 - SDF_GUI - INFO - Extracting AIS_2024_10_22.zip
+2025-11-22 20:12:51,928 - SDF_GUI - INFO - Converting AIS_2024_10_22.csv to parquet
+2025-11-22 20:13:27,729 - SDF_GUI - INFO - Successfully processed AIS_2024_10_22.zip
+2025-11-22 20:13:27,730 - SDF_GUI - INFO - Downloading AIS_2024_10_23.zip (3/3)
+2025-11-22 20:14:12,234 - SDF_GUI - INFO - Extracting AIS_2024_10_23.zip
+2025-11-22 20:14:19,487 - SDF_GUI - INFO - Converting AIS_2024_10_23.csv to parquet
+2025-11-22 20:14:58,324 - SDF_GUI - INFO - Successfully processed AIS_2024_10_23.zip
+2025-11-22 20:14:58,324 - SDF_GUI - INFO - Successfully processed 3/3 files
+2025-11-22 20:14:58,325 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-22 20:14:58,329 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-21', '--end-date', '2024-10-23', '--data-source', 'noaa', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-21_2024-10-23_1763860233_cbm3_t5a\\parquet']
+2025-11-22 20:14:58,329 - SDF_GUI - INFO - =========================
+2025-11-22 20:14:58,330 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-22 20:14:58,330 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763860233_cbm3_t5a\parquet
+2025-11-22 20:14:58,330 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 20:14:58,331 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-22 20:14:58,617 - SDF_GUI - INFO - DEBUG: Process started with PID: 19084
+2025-11-22 20:14:58,618 - SDF_GUI - INFO - =========================
+2025-11-22 20:14:58,618 - SDF_GUI - INFO - Process started with PID: 19084
+2025-11-22 20:14:59,340 - SDF_GUI - INFO - Starting output capture for subprocess
+2025-11-22 20:14:59,343 - SDF_GUI - INFO - Started stdout reading thread
+2025-11-22 20:14:59,344 - SDF_GUI - INFO - Started stderr reading thread
+2025-11-22 20:14:59,344 - SDF_GUI - INFO - Starting to process output queues
+2025-11-22 20:17:36,559 - SDF_GUI - INFO - Process exited with code 101, reading remaining output
+2025-11-22 20:17:36,577 - SDF_GUI - INFO - Stdout reader detected process exit
+2025-11-22 20:17:36,578 - SDF_GUI - INFO - Stderr reader detected process exit
+2025-11-22 20:17:36,578 - SDF_GUI - INFO - Stdout reader thread exiting
+2025-11-22 20:17:36,578 - SDF_GUI - INFO - Stderr reader thread exiting
+2025-11-22 20:17:36,581 - SDF_GUI - INFO - Setting up analysis completion UI with output_directory=C:/AIS_Data/Output, success=True
+2025-11-22 20:17:37,097 - SDF_GUI - INFO - ProgressWindow: conduct_additional_analysis requested
+2025-11-22 20:17:37,098 - SDF_GUI - INFO - Found parent with conduct_additional_analysis method: <__main__.SDFGUI object at 0x000001B8E4F3C1A0>
+2025-11-22 20:17:37,822 - SDF_GUI - INFO - Opening advanced analytical tools for additional analysis
+2025-11-22 20:17:52,873 - SDF_GUI - INFO - Selected analysis tool: Anomaly Correlation
+2025-11-22 20:18:38,123 - SDF_GUI - INFO - Selected analysis tool: Full Map
+2025-11-22 20:18:57,954 - SDF_GUI - INFO - Selected analysis tool: Generate Anomaly Timeline
+2025-11-22 20:37:31,116 - SDF_GUI - INFO - Checking dependencies...
+2025-11-22 20:37:36,456 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-22 20:37:58,355 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 20:37:58,356 - SDF_GUI - INFO - Script path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 20:37:58,356 - SDF_GUI - INFO - Config path: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 20:37:58,369 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 20:37:58,761 - SDF_GUI - INFO - Download phase will be followed by extraction and conversion.
+2025-11-22 20:37:59,638 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-22 20:38:41,398 - SDF_GUI - INFO -    - File size: 875.5 MB
+2025-11-22 20:39:02,804 - SDF_GUI - INFO -    - Loaded 8380852 records from CSV
+2025-11-22 20:39:14,361 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-21.parquet
+2025-11-22 20:39:58,668 - SDF_GUI - INFO -    - File size: 951.3 MB
+2025-11-22 20:40:22,942 - SDF_GUI - INFO -    - Loaded 9100953 records from CSV
+2025-11-22 20:40:35,799 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-22.parquet
+2025-11-22 20:41:22,503 - SDF_GUI - INFO -    - File size: 945.9 MB
+2025-11-22 20:41:43,897 - SDF_GUI - INFO -    - Loaded 9039810 records from CSV
+2025-11-22 20:41:57,104 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-23.parquet
+2025-11-22 20:41:58,205 - SDF_GUI - INFO - Successfully processed 3/3 files
+2025-11-22 20:41:58,206 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-22 20:41:58,209 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'c:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-21', '--end-date', '2024-10-23', '--data-source', 'noaa', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-21_2024-10-23_1763861878_aos181t7\\parquet']
+2025-11-22 20:41:58,210 - SDF_GUI - INFO - =========================
+2025-11-22 20:41:58,211 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-22 20:41:58,212 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763861878_aos181t7\parquet
+2025-11-22 20:41:58,213 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 20:41:58,214 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-22 20:41:58,410 - SDF_GUI - INFO - DEBUG: Process started with PID: 40516
+2025-11-22 20:41:58,410 - SDF_GUI - INFO - =========================
+2025-11-22 20:41:58,411 - SDF_GUI - INFO - Process started with PID: 40516
+2025-11-22 20:42:00,234 - SDF_GUI - INFO - Starting output capture for subprocess
+2025-11-22 20:42:00,236 - SDF_GUI - INFO - Started stdout reading thread
+2025-11-22 20:42:00,237 - SDF_GUI - INFO - Started stderr reading thread
+2025-11-22 20:42:00,238 - SDF_GUI - INFO - Starting to process output queues
+2025-11-22 20:44:20,134 - SDF_GUI - INFO - Process exited with code 0, reading remaining output
+2025-11-22 20:44:20,141 - SDF_GUI - INFO - Stdout reader detected process exit
+2025-11-22 20:44:20,141 - SDF_GUI - INFO - Stderr reader detected process exit
+2025-11-22 20:44:20,142 - SDF_GUI - INFO - Stdout reader thread exiting
+2025-11-22 20:44:20,142 - SDF_GUI - INFO - Stderr reader thread exiting
+2025-11-22 20:44:20,147 - SDF_GUI - INFO - Analysis completed with return code 0 - showing completion options
+2025-11-22 20:44:20,665 - SDF_GUI - INFO - Setting up analysis completion UI with output_directory=C:/AIS_Data/Output, success=True
+2025-11-22 21:00:14,386 - SDF_GUI - INFO - Checking dependencies...
+2025-11-22 21:00:21,678 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-22 21:00:34,173 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 21:00:34,173 - SDF_GUI - INFO - Script path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 21:00:34,174 - SDF_GUI - INFO - Config path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 21:00:34,184 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 21:00:34,524 - SDF_GUI - INFO - Download phase will be followed by extraction and conversion.
+2025-11-22 21:00:35,829 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-22 21:01:16,339 - SDF_GUI - INFO -    - File size: 875.5 MB
+2025-11-22 21:01:38,750 - SDF_GUI - INFO -    - Loaded 8380852 records from CSV
+2025-11-22 21:01:53,039 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-21.parquet
+2025-11-22 21:02:44,505 - SDF_GUI - INFO -    - File size: 951.3 MB
+2025-11-22 21:03:06,204 - SDF_GUI - INFO -    - Loaded 9100953 records from CSV
+2025-11-22 21:03:17,765 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-22.parquet
+2025-11-22 21:03:41,085 - SDF_GUI - INFO -    - File size: 945.9 MB
+2025-11-22 21:04:05,444 - SDF_GUI - INFO -    - Loaded 9039810 records from CSV
+2025-11-22 21:04:17,852 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-23.parquet
+2025-11-22 21:04:18,524 - SDF_GUI - INFO - Successfully processed 3/3 files
+2025-11-22 21:04:18,524 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-22 21:04:18,527 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\616180\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe', 'C:\\Users\\616180\\OneDrive - BOOZ ALLEN HAMILTON\\Desktop\\MVP\\SFD.py', '--start-date', '2024-10-21', '--end-date', '2024-10-23', '--data-source', 'noaa', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\616180\\AppData\\Local\\Temp\\1\\noaa_ais_noaa_2024-10-21_2024-10-23_1763863234_ugqrf8r2\\parquet']
+2025-11-22 21:04:18,527 - SDF_GUI - INFO - =========================
+2025-11-22 21:04:18,527 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-22 21:04:18,528 - SDF_GUI - INFO - DEBUG: Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\616180\AppData\Local\Temp\1\noaa_ais_noaa_2024-10-21_2024-10-23_1763863234_ugqrf8r2\parquet
+2025-11-22 21:04:18,528 - SDF_GUI - INFO - DEBUG: Working directory: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 21:04:18,528 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-22 21:04:18,713 - SDF_GUI - INFO - DEBUG: Process started with PID: 77456
+2025-11-22 21:04:18,714 - SDF_GUI - INFO - =========================
+2025-11-22 21:04:18,714 - SDF_GUI - INFO - Process started with PID: 77456
+2025-11-22 21:04:19,859 - SDF_GUI - INFO - Starting output capture for subprocess
+2025-11-22 21:04:19,861 - SDF_GUI - INFO - Started stdout reading thread
+2025-11-22 21:04:19,863 - SDF_GUI - INFO - Started stderr reading thread
+2025-11-22 21:04:19,864 - SDF_GUI - INFO - Starting to process output queues
+2025-11-22 21:06:38,330 - SDF_GUI - INFO - Process exited with code 101, reading remaining output
+2025-11-22 21:06:38,332 - SDF_GUI - INFO - Stderr reader detected process exit
+2025-11-22 21:06:38,332 - SDF_GUI - INFO - Stderr reader thread exiting
+2025-11-22 21:06:38,333 - SDF_GUI - INFO - Stdout reader detected process exit
+2025-11-22 21:06:38,333 - SDF_GUI - INFO - Stdout reader thread exiting
+2025-11-22 21:06:38,335 - SDF_GUI - INFO - Setting up analysis completion UI with output_directory=C:/AIS_Data/Output, success=True
+2025-11-22 21:06:38,866 - SDF_GUI - INFO - ProgressWindow: conduct_additional_analysis requested
+2025-11-22 21:06:38,868 - SDF_GUI - INFO - Found parent with conduct_additional_analysis method: <__main__.SDFGUI object at 0x000001CA4A2801A0>
+2025-11-22 21:06:39,512 - SDF_GUI - INFO - Opening advanced analytical tools for additional analysis
+2025-11-22 21:08:16,175 - SDF_GUI - INFO - Selected analysis tool: Vessel Analysis
+2025-11-22 21:08:31,598 - SDF_GUI - INFO - Selected analysis tool: Export Full Dataset to CSV
+2025-11-22 21:13:01,209 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-22 21:13:01,210 - SDF_GUI - INFO - Script path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py
+2025-11-22 21:13:01,211 - SDF_GUI - INFO - Config path: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\config.ini
+2025-11-22 21:13:01,226 - SDF_GUI - INFO - Command: C:\Users\616180\AppData\Local\Python\pythoncore-3.14-64\python.exe C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: C:\Users\616180\OneDrive - BOOZ ALLEN HAMILTON\Desktop\MVP
+2025-11-22 21:13:01,450 - SDF_GUI - INFO - Download phase will be followed by extraction and conversion.
+2025-11-22 21:13:02,206 - SDF_GUI - INFO - Will download 3 daily files

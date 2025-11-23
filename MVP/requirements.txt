@@ -1,0 +1,56 @@
+# Core data processing and analysis
+pandas>=1.3.0
+numpy>=1.20.0
+dask>=2022.1.0
+
+# Geospatial libraries
+geopy>=2.0.0
+folium>=0.12.0
+branca>=0.4.0
+
+# Visualization
+matplotlib>=3.4.0
+seaborn>=0.11.0
+
+# NOAA Data
+pyarrow
+requests
+
+# AWS support
+boto3>=1.20.0
+botocore>=1.20.0
+s3fs>=2023.1.0  # For S3 access with Dask
+
+# GUI enhancements
+Pillow>=9.0.0  # PIL fork for image processing
+tkcalendar>=1.6.0  # Calendar widget for date selection
+
+# Excel export support
+xlsxwriter>=3.0.0  # For Excel file generation
+
+# Optional: Interactive visualization (used in SFD.py for enhanced charts)
+plotly>=5.0.0  # Optional: For interactive scatter plots
+
+# Windows specific (optional)
+pywin32>=300 ; platform_system=='Windows'
+
+# GPU support (RAPIDS ecosystem)
+# Note: Higher versions (25.x+) require conda installation
+# These are pip-installable fallback versions
+
+# NVIDIA CUDA support
+# cudf<1.0  # GPU-accelerated DataFrame
+# cupy<8.0   # GPU-accelerated NumPy (for NVIDIA CUDA)
+# cuml<1.0  # GPU-accelerated Machine Learning
+
+# AMD GPU support (ROCm/HIP)
+# AMD support rrquires the HIP-SDK to be installed https://www.amd.com/en/developer/resources/rocm-hub/hip-sdk.html
+# Note: cupy-rocm is installed as 'cupy' but uses ROCm/HIP backend
+# Install cupy-rocm for AMD GPUs (replaces cupy for AMD systems)
+# cupy-rocm>=12.0.0  # AMD ROCm version of CuPy (install via: pip install cupy-rocm)
+# Alternatively, use PyHIP for direct HIP access:
+# pyhip>=0.1.0  # PyHIP for direct AMD HIP runtime access
+
+# Note: tkinter is usually included with Python installations
+# On Linux, you may need to install: sudo apt-get install python3-tk
+# On macOS, tkinter should be included with Python from python.org
