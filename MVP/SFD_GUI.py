@@ -28,6 +28,14 @@ import importlib
 import importlib.metadata  # Modern replacement for pkg_resources
 import tempfile
 import shutil
+
+# Advanced Analysis import
+try:
+    from advanced_analysis import AdvancedAnalysisGUI
+    ADVANCED_ANALYSIS_AVAILABLE = True
+except ImportError:
+    ADVANCED_ANALYSIS_AVAILABLE = False
+    logger.warning("Advanced analysis module not available. Install required dependencies.")
 import requests
 import zipfile
 from datetime import datetime, timedelta
@@ -1087,104 +1095,34 @@ class SDFGUI:
         logger.info("Opening advanced analytical tools for additional analysis")
         
         try:
-            # Create a new window for additional analysis options
-            additional_window = tk.Toplevel(self.root)
-            additional_window.title("Advanced Analytical Tools")
-            additional_window.geometry("900x700")  # Larger window for more content
-            additional_window.minsize(800, 600)
-                
-            # Create main container frame with padding
-            main_frame = ttk.Frame(additional_window, padding=10)
-            main_frame.pack(fill=tk.BOTH, expand=True)
+            if not ADVANCED_ANALYSIS_AVAILABLE:
+                messagebox.showerror("Error", 
+                    "Advanced analysis module is not available.\\n\\n"
+                    "Please ensure advanced_analysis.py is in the same directory as SFD_GUI.py")
+                return
             
-            # Add a header with title and description
-            ttk.Label(main_frame, text="Advanced Analytical Tools", 
-                    font=("Arial", 16, "bold")).pack(anchor=tk.W)
-            ttk.Label(main_frame, 
-                    text="Perform additional analysis on the previously generated dataset",
-                    font=("Arial", 11)).pack(anchor=tk.W, pady=(0, 15))
+            # Get output directory from config or use default
+            output_dir = self.output_directory.get()
+            if not output_dir:
+                output_dir = "C:/AIS_Data/Output"
             
-            # Create a notebook for better organization of many options
-            notebook = ttk.Notebook(main_frame)
-            notebook.pack(fill=tk.BOTH, expand=True, pady=10)
+            # Get config path relative to script directory (same as load_config does)
+            if getattr(sys, 'frozen', False):
+                script_dir = os.path.dirname(sys.executable)
+            else:
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+            config_path = os.path.join(script_dir, 'config.ini')
             
-            # Create tabs for different categories of analysis
-            tab_output = ttk.Frame(notebook, padding=10)
-            tab_analysis = ttk.Frame(notebook, padding=10)
-            tab_maps = ttk.Frame(notebook, padding=10)
-            tab_vessel = ttk.Frame(notebook, padding=10)
-            
-            # Add tabs to the notebook
-            notebook.add(tab_output, text="Additional Outputs")
-            notebook.add(tab_analysis, text="Further Analysis")
-            notebook.add(tab_maps, text="Mapping Tools")
-            notebook.add(tab_vessel, text="Vessel-Specific Analysis")
-            
-            # Tab 1: Additional Outputs
-            ttk.Label(tab_output, text="Generate Additional Outputs from Dataset", 
-                    font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=(0, 10))
-            
-            # Add content to output tab
-            output_options = [
-                ("Export Full Dataset to CSV", "Export the complete analysis dataset to CSV format"),
-                ("Generate Summary Report", "Create a summary report with key findings and statistics"),
-                ("Export Vessel Statistics", "Export vessel-specific statistics to Excel format"),
-                ("Generate Anomaly Timeline", "Create a timeline visualization of anomalies")
-            ]
-            
-            for btn_text, btn_desc in output_options:
-                option_frame = ttk.Frame(tab_output)
-                option_frame.pack(fill=tk.X, pady=5)
-                
-                ttk.Button(option_frame, text=btn_text, width=25,
-                        command=lambda t=btn_text: self.launch_analysis_tool(t, additional_window)).pack(side=tk.LEFT, padx=5)
-                
-                ttk.Label(option_frame, text=btn_desc, wraplength=500, 
-                        font=("Arial", 10)).pack(side=tk.LEFT, padx=5)
-                
-            # Tab 2: Further Analysis
-            ttk.Label(tab_analysis, text="Further Analysis Tools", 
-                    font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=(0, 10))
-            
-            ttk.Label(tab_analysis, text="Select an analysis option:").pack(pady=10)
-            ttk.Button(tab_analysis, text="Anomaly Correlation Analysis",
-                    command=lambda: self.launch_analysis_tool("Anomaly Correlation", additional_window)).pack(pady=5)
-            
-            # Tab 3: Mapping Tools
-            ttk.Label(tab_maps, text="Advanced Mapping Tools", 
-                    font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=(0, 10))
-            
-            ttk.Label(tab_maps, text="Select a mapping option:").pack(pady=10)
-            ttk.Button(tab_maps, text="Full Spectrum Anomaly Map",
-                    command=lambda: self.launch_analysis_tool("Full Map", additional_window)).pack(pady=5)
-                    
-            # Tab 4: Vessel-Specific Analysis
-            ttk.Label(tab_vessel, text="Vessel-Specific Analysis Tools", 
-                    font=("Arial", 12, "bold")).pack(anchor=tk.W, pady=(0, 10))
-            
-            ttk.Label(tab_vessel, text="Enter MMSI for vessel analysis:").pack(pady=5)
-            ttk.Entry(tab_vessel, width=15).pack(pady=5)
-            ttk.Button(tab_vessel, text="Analyze Vessel",
-                    command=lambda: self.launch_analysis_tool("Vessel Analysis", additional_window)).pack(pady=5)
-            
-            # Create bottom frame for control buttons
-            bottom_frame = ttk.Frame(main_frame)
-            bottom_frame.pack(fill=tk.X, side=tk.BOTTOM, pady=10)
-            
-            # Add buttons to close or return
-            ttk.Button(bottom_frame, text="Return to Results", 
-                    command=lambda: [additional_window.destroy(), self.deiconify()]).pack(side=tk.RIGHT, padx=5)
-            
-            ttk.Button(bottom_frame, text="Start New Analysis", 
-                    command=lambda: [additional_window.destroy(), self.reset_for_new_analysis()]).pack(side=tk.RIGHT, padx=5)
-            
-            # Make sure this window is shown properly
-            additional_window.lift()
-            additional_window.focus_force()  # Force focus
-            additional_window.update_idletasks()  # Update layout
-            
-            # Set protocol for window close
-            additional_window.protocol("WM_DELETE_WINDOW", lambda: [additional_window.destroy(), self.deiconify()])
+            # Launch the advanced analysis GUI
+            try:
+                advanced_gui = AdvancedAnalysisGUI(self.root, output_dir, config_path)
+                logger.info("Advanced analysis GUI launched successfully")
+            except Exception as e:
+                logger.error(f"Error launching advanced analysis GUI: {e}")
+                logger.error(traceback.format_exc())
+                messagebox.showerror("Error", 
+                    f"Could not launch advanced analysis interface:\\n{str(e)}\\n\\n"
+                    "Please check that config.ini exists and contains valid settings.")
             
         except Exception as e:
             import traceback

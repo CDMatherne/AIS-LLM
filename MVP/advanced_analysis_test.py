@@ -67,13 +67,27 @@ class AdvancedAnalysisTesting:
     
     def launch_advanced_analysis_direct(self):
         """Direct implementation of advanced analysis interface"""
-        from advanced_analysis import AdvancedAnalysis
         try:
-            analysis_window = tk.Toplevel(self.root)
-            app = AdvancedAnalysis(analysis_window, self.output_directory)
+            from advanced_analysis import AdvancedAnalysisGUI
+            
+            # Get output directory
+            output_dir = self.output_dir_var.get()
+            if not output_dir:
+                output_dir = self.output_directory
+            
+            # Launch the GUI
+            advanced_gui = AdvancedAnalysisGUI(self.root, output_dir, 'config.ini')
             self.status_var.set("Advanced Analysis interface launched")
+            
+        except ImportError as e:
+            logger.error(f"Error importing advanced_analysis module: {e}")
+            messagebox.showerror("Error", 
+                f"Could not import advanced_analysis module:\n{e}\n\n"
+                "Please ensure advanced_analysis.py is in the same directory.")
+            self._show_fallback_interface()
         except Exception as e:
             logger.error(f"Error launching advanced analysis interface: {e}")
+            logger.error(traceback.format_exc())
             messagebox.showerror("Error", f"Could not launch advanced analysis interface: {e}")
             self._show_fallback_interface()
     

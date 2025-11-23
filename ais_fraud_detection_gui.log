@@ -1,0 +1,63 @@
+2025-11-23 09:52:35,111 - SDF_GUI - INFO - Checking dependencies...
+2025-11-23 09:52:37,482 - SDF_GUI - INFO - All dependencies are satisfied.
+2025-11-23 09:52:55,675 - SDF_GUI - INFO - Found script file: SFD.py
+2025-11-23 09:52:55,675 - SDF_GUI - INFO - Script path: c:\Users\chris\Downloads\git\AIS-LLM\MVP\SFD.py
+2025-11-23 09:52:55,675 - SDF_GUI - INFO - Config path: c:\Users\chris\Downloads\git\AIS-LLM\MVP\config.ini
+2025-11-23 09:52:55,677 - SDF_GUI - INFO - Command: C:\Users\chris\AppData\Local\Programs\Python\Python314\python.exe c:\Users\chris\Downloads\git\AIS-LLM\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug
+Working directory: c:\Users\chris\Downloads\git\AIS-LLM\MVP
+2025-11-23 09:52:55,908 - SDF_GUI - INFO - Download phase will be followed by extraction and conversion.
+2025-11-23 09:52:56,310 - SDF_GUI - INFO - Will download 3 daily files
+2025-11-23 09:53:05,471 - SDF_GUI - INFO -    - File size: 875.5 MB
+2025-11-23 09:53:19,629 - SDF_GUI - INFO -    - Loaded 8380852 records from CSV
+2025-11-23 09:53:27,538 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-21.parquet
+2025-11-23 09:53:37,095 - SDF_GUI - INFO -    - File size: 951.3 MB
+2025-11-23 09:53:52,654 - SDF_GUI - INFO -    - Loaded 9100953 records from CSV
+2025-11-23 09:54:00,906 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-22.parquet
+2025-11-23 09:54:11,224 - SDF_GUI - INFO -    - File size: 945.9 MB
+2025-11-23 09:54:26,134 - SDF_GUI - INFO -    - Loaded 9039810 records from CSV
+2025-11-23 09:54:35,111 - SDF_GUI - INFO -    - Conversion complete: ais-2024-10-23.parquet
+2025-11-23 09:54:36,195 - SDF_GUI - INFO - Successfully processed 3/3 files
+2025-11-23 09:54:36,196 - SDF_GUI - INFO - Using NOAA data source: https://coast.noaa.gov/htdata/CMSP/AISDataHandler/2024/
+2025-11-23 09:54:36,196 - SDF_GUI - INFO - Attempting to start process with cmd: ['C:\\Users\\chris\\AppData\\Local\\Programs\\Python\\Python314\\python.exe', 'c:\\Users\\chris\\Downloads\\git\\AIS-LLM\\MVP\\SFD.py', '--start-date', '2024-10-21', '--end-date', '2024-10-23', '--data-source', 'noaa', '--output-directory', 'C:/AIS_Data/Output', '--debug', '--data-directory', 'C:\\Users\\chris\\AppData\\Local\\Temp\\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\\parquet']
+2025-11-23 09:54:36,196 - SDF_GUI - INFO - =========================
+2025-11-23 09:54:36,196 - SDF_GUI - INFO - DEBUG: Starting subprocess
+2025-11-23 09:54:36,196 - SDF_GUI - INFO - DEBUG: Command: C:\Users\chris\AppData\Local\Programs\Python\Python314\python.exe c:\Users\chris\Downloads\git\AIS-LLM\MVP\SFD.py --start-date 2024-10-21 --end-date 2024-10-23 --data-source noaa --output-directory C:/AIS_Data/Output --debug --data-directory C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet
+2025-11-23 09:54:36,196 - SDF_GUI - INFO - DEBUG: Working directory: c:\Users\chris\Downloads\git\AIS-LLM\MVP
+2025-11-23 09:54:36,197 - SDF_GUI - INFO - DEBUG: Env variables: SFD_GUI_MODE=true
+2025-11-23 09:54:36,205 - SDF_GUI - INFO - DEBUG: Process started with PID: 26444
+2025-11-23 09:54:36,206 - SDF_GUI - INFO - =========================
+2025-11-23 09:54:36,206 - SDF_GUI - INFO - Process started with PID: 26444
+2025-11-23 09:54:37,181 - SDF_GUI - INFO - Starting output capture for subprocess
+2025-11-23 09:54:37,182 - SDF_GUI - INFO - Started stdout reading thread
+2025-11-23 09:54:37,183 - SDF_GUI - INFO - Started stderr reading thread
+2025-11-23 09:54:37,183 - SDF_GUI - INFO - Starting to process output queues
+2025-11-23 10:37:29,079 - SDF_GUI - INFO - Stderr reader detected process exit
+2025-11-23 10:37:29,079 - SDF_GUI - INFO - Stdout reader detected process exit
+2025-11-23 10:37:29,080 - SDF_GUI - INFO - Stderr reader thread exiting
+2025-11-23 10:37:29,080 - SDF_GUI - INFO - Stdout reader thread exiting
+2025-11-23 10:37:29,085 - SDF_GUI - INFO - Process exited with code 101, reading remaining output
+2025-11-23 10:37:29,094 - SDF_GUI - INFO - Setting up analysis completion UI with output_directory=C:/AIS_Data/Output, success=True
+2025-11-23 10:37:29,641 - SDF_GUI - INFO - ProgressWindow: conduct_additional_analysis requested
+2025-11-23 10:37:29,641 - SDF_GUI - INFO - Found parent with conduct_additional_analysis method: <__main__.SDFGUI object at 0x0000016B59C72F90>
+2025-11-23 10:37:31,165 - SDF_GUI - INFO - Opening advanced analytical tools for additional analysis
+2025-11-23 10:39:02,994 - SDF_GUI - ERROR - Error launching advanced analysis GUI: Config validation failed: Config file not found: config.ini
+2025-11-23 10:39:02,994 - SDF_GUI - ERROR - Error creating additional analysis window: cannot access local variable 'traceback' where it is not associated with a value
+2025-11-23 10:39:02,997 - SDF_GUI - ERROR - Traceback (most recent call last):
+  File "c:\Users\chris\Downloads\git\AIS-LLM\MVP\SFD_GUI.py", line 1111, in conduct_additional_analysis
+    advanced_gui = AdvancedAnalysisGUI(self.root, output_dir, 'config.ini')
+  File "c:\Users\chris\Downloads\git\AIS-LLM\MVP\advanced_analysis.py", line 1578, in __init__
+    try:
+    
+  File "c:\Users\chris\Downloads\git\AIS-LLM\MVP\advanced_analysis.py", line 508, in __init__
+    if not is_valid:
+        ^^^^^^^^^^^^
+ValueError: Config validation failed: Config file not found: config.ini
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "c:\Users\chris\Downloads\git\AIS-LLM\MVP\SFD_GUI.py", line 1115, in conduct_additional_analysis
+    logger.error(traceback.format_exc())
+                 ^^^^^^^^^
+UnboundLocalError: cannot access local variable 'traceback' where it is not associated with a value
+

@@ -1,0 +1,30 @@
+2025-11-23 09:51:56,408 - __main__ - INFO - Python version: 3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]
+2025-11-23 09:51:56,409 - __main__ - INFO - Python version info: 3.14.0
+2025-11-23 09:51:56,409 - __main__ - INFO - Python executable: C:\Users\chris\AppData\Local\Programs\Python\Python314\python.exe
+2025-11-23 09:51:56,978 - __main__ - INFO - GPU support detected and enabled (AMD HIP via PyHIP)
+2025-11-23 09:51:56,979 - __main__ - INFO - AMD GPU detected on Windows - functionality may be limited
+2025-11-23 09:51:56,979 - __main__ - INFO - Checking dependencies...
+2025-11-23 09:51:56,979 - __main__ - INFO - Python version: 3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]
+2025-11-23 09:51:56,980 - __main__ - INFO - Python version info: 3.14.0
+2025-11-23 09:51:56,980 - __main__ - INFO - Python executable: C:\Users\chris\AppData\Local\Programs\Python\Python314\python.exe
+2025-11-23 09:52:02,436 - __main__ - INFO - All dependencies are satisfied.
+2025-11-23 09:52:02,442 - __main__ - INFO - ======================================
+2025-11-23 09:52:02,442 - __main__ - INFO - SFD.py starting with parameters:
+2025-11-23 09:52:02,442 - __main__ - INFO - Start date: None
+2025-11-23 09:52:02,442 - __main__ - INFO - End date: None
+2025-11-23 09:52:02,442 - __main__ - INFO - Data source: None
+2025-11-23 09:52:02,442 - __main__ - INFO - Cache: Enabled
+2025-11-23 09:52:02,442 - __main__ - INFO - Data directory: None
+2025-11-23 09:52:02,442 - __main__ - INFO - Output directory: None
+2025-11-23 09:52:02,443 - __main__ - INFO - Debug mode: False
+2025-11-23 09:52:02,443 - __main__ - INFO - ======================================
+2025-11-23 09:52:02,443 - __main__ - WARNING - Config file config.ini not found. Using default values.
+2025-11-23 09:52:02,443 - __main__ - INFO - S3 access is not enabled in config.ini
+2025-11-23 09:52:02,443 - __main__ - INFO - Warnings have been suppressed based on configuration
+2025-11-23 09:52:02,443 - __main__ - INFO - Using start date from config: 2024-10-15
+2025-11-23 09:52:02,443 - __main__ - INFO - Using end date from config: 2024-10-17
+2025-11-23 09:52:02,443 - __main__ - INFO - Running fraud detection for date range 2024-10-15 to 2024-10-17
+2025-11-23 09:52:02,444 - __main__ - ERROR - Data directory data does not exist or is not a directory
+2025-11-23 09:52:02,444 - __main__ - ERROR - No valid files found for the specified date range.
+2025-11-23 09:52:02,449 - __main__ - ERROR - Failed to open output directory: [WinError 2] The system cannot find the file specified: 'C:\\AIS_Data\\Reports'
+2025-11-23 09:52:02,449 - __main__ - INFO - Analysis completed successfully. Exiting...

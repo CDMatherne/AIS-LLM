@@ -29,6 +29,7 @@ import importlib
 import hashlib
 import json
 import shutil
+
 # Try to import importlib.metadata (Python 3.8+), fallback to pkg_resources for older Python
 # Note: Python 3.14 is fully supported
 try:
@@ -348,6 +349,17 @@ logger.info(f"Python executable: {sys.executable}")
 
 # The application should still run without GPU support, so we don't attempt installation
 # The GPU installation is handled separately by the GUI when the user explicitly requests it
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+# Advanced Analysis import (after logger is initialized)
+try:
+    from advanced_analysis import AdvancedAnalysis
+    ADVANCED_ANALYSIS_AVAILABLE = True
+except ImportError:
+    ADVANCED_ANALYSIS_AVAILABLE = False
+    logger.warning("Advanced analysis module not available for CLI operations")
         
 if not GPU_AVAILABLE:
     logger.info("Running without GPU acceleration")
@@ -1540,21 +1552,17 @@ def load_and_preprocess_day(file_path, config, use_dask=True):
             
         return df"""
         
-    # If we reached here, cache data was not available or not usable
-    try:
-        logger.info(f"Loading data from {file_path}")
-        file_ext = os.path.splitext(file_path)[1].lower()
+        # Save successfully loaded data to cache before returning
+        if not df.empty and cache_path:
+            save_to_cache(df, cache_path)
+            
+        # Return the DataFrame (empty or not)
+        return df
         
     except Exception as e:
         logger.error(f"Error processing file {file_path}: {e}")
+        logger.error(traceback.format_exc())
         return pd.DataFrame()  # Return empty DataFrame instead of None
-    
-    # Save successfully loaded data to cache before returning
-    if not df.empty and cache_path:
-        save_to_cache(df, cache_path)
-        
-    # Return the DataFrame (empty or not)
-    return df
 
 
 def create_map_visualization(anomalies_df, output_path, config=None):
@@ -3973,6 +3981,26 @@ def main():
     parser.add_argument('--bucket', type=str, help='S3 bucket name')
     parser.add_argument('--prefix', type=str, help='S3 object prefix (path)')
     
+    # Advanced Analysis options
+    parser.add_argument('--advanced-analysis', type=str, 
+                       choices=['export-full-dataset', 'summary-report', 'vessel-statistics', 
+                               'anomaly-timeline', 'temporal-patterns', 'vessel-clustering',
+                               'anomaly-frequency', 'full-spectrum-map', 'vessel-map'],
+                       help='Run advanced analysis feature')
+    parser.add_argument('--vessel-mmsi', type=int, 
+                       help='MMSI number for vessel-specific analysis (required for vessel-map)')
+    parser.add_argument('--map-type', type=str, choices=['path', 'anomaly', 'heatmap'],
+                       help='Map type for vessel-map (default: path)')
+    parser.add_argument('--show-pins', action='store_true', default=True,
+                       help='Show pins on full spectrum map (default: True)')
+    parser.add_argument('--show-heatmap', action='store_true', default=True,
+                       help='Show heatmap on full spectrum map (default: True)')
+    parser.add_argument('--extended-start-date', type=str,
+                       help='Start date for extended time analysis (YYYY-MM-DD)')
+    parser.add_argument('--extended-end-date', type=str,
+                       help='End date for extended time analysis (YYYY-MM-DD)')
+    parser.add_argument('--n-clusters', type=int, default=5,
+                       help='Number of clusters for vessel behavior clustering (default: 5)')
     
     # Catch any parser errors
     try:
@@ -4202,7 +4230,92 @@ def main():
             config['S3_DATA_URI'] = s3_uri
             config['DATA_DIRECTORY'] = s3_uri
         
-        # Run anomaly detection
+        # Handle advanced analysis if requested (can run without main analysis)
+        if args.advanced_analysis:
+            if not ADVANCED_ANALYSIS_AVAILABLE:
+                logger.error("Advanced analysis module is not available")
+                print("ERROR: Advanced analysis module is not available.")
+                print("Please ensure advanced_analysis.py is in the same directory as SFD.py")
+                return 1
+            
+            logger.info(f"Running advanced analysis: {args.advanced_analysis}")
+            
+            try:
+                output_dir = config.get('OUTPUT_DIRECTORY', 'output')
+                analysis = AdvancedAnalysis(None, output_dir, args.config)
+                
+                result = None
+                
+                if args.advanced_analysis == 'export-full-dataset':
+                    result = analysis.export_full_dataset()
+                    print(f"Full dataset exported to: {result}")
+                
+                elif args.advanced_analysis == 'summary-report':
+                    result = analysis.generate_summary_report()
+                    print(f"Summary report generated: {result}")
+                
+                elif args.advanced_analysis == 'vessel-statistics':
+                    result = analysis.export_vessel_statistics()
+                    print(f"Vessel statistics exported to: {result}")
+                
+                elif args.advanced_analysis == 'anomaly-timeline':
+                    result = analysis.generate_anomaly_timeline()
+                    print(f"Anomaly timeline generated: {result}")
+                
+                elif args.advanced_analysis == 'temporal-patterns':
+                    result = analysis.temporal_pattern_analysis()
+                    print(f"Temporal pattern analysis completed: {result}")
+                
+                elif args.advanced_analysis == 'vessel-clustering':
+                    result = analysis.vessel_behavior_clustering(n_clusters=args.n_clusters)
+                    print(f"Vessel clustering completed: {result}")
+                
+                elif args.advanced_analysis == 'anomaly-frequency':
+                    result = analysis.anomaly_frequency_analysis()
+                    print(f"Anomaly frequency analysis completed: {result}")
+                
+                elif args.advanced_analysis == 'full-spectrum-map':
+                    result = analysis.create_full_spectrum_map(
+                        show_pins=args.show_pins,
+                        show_heatmap=args.show_heatmap
+                    )
+                    print(f"Full spectrum map created: {result}")
+                
+                elif args.advanced_analysis == 'vessel-map':
+                    if not args.vessel_mmsi:
+                        logger.error("--vessel-mmsi is required for vessel-map")
+                        print("ERROR: --vessel-mmsi is required for vessel-map")
+                        return 1
+                    
+                    map_type = args.map_type or 'path'
+                    result = analysis.create_vessel_map(args.vessel_mmsi, map_type)
+                    print(f"Vessel map created: {result}")
+                
+                if result:
+                    logger.info(f"Advanced analysis completed successfully: {result}")
+                    # Open the result file if it's an HTML file
+                    if result.endswith('.html'):
+                        try:
+                            if platform.system() == "Windows":
+                                os.startfile(result)
+                            elif platform.system() == "Darwin":  # macOS
+                                subprocess.call(["open", result])
+                            else:  # Linux
+                                subprocess.call(["xdg-open", result])
+                        except Exception as e:
+                            logger.warning(f"Could not open result file: {e}")
+                    return 0
+                else:
+                    logger.error("Advanced analysis failed to produce output")
+                    return 1
+                    
+            except Exception as e:
+                logger.error(f"Error running advanced analysis: {e}")
+                logger.error(traceback.format_exc())
+                print(f"ERROR: Advanced analysis failed: {e}")
+                return 1
+        
+        # Run anomaly detection (only if dates provided)
         if args.start_date is None or args.end_date is None:
             logger.error("Start date and end date are required. Please provide them as command-line arguments or in the config file.")
             return 1

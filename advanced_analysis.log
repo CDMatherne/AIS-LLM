@@ -1,0 +1,38 @@
+2025-11-23 10:40:34,429 - Advanced_Analysis - INFO - Found 0 matching cache files for date range 2024-10-21 to 2024-10-23
+2025-11-23 10:40:34,429 - Advanced_Analysis - WARNING - No cached data files found for the specified date range
+2025-11-23 10:40:34,430 - Advanced_Analysis - WARNING - Dependency: sklearn: Vessel clustering will not be available
+2025-11-23 10:40:34,430 - Advanced_Analysis - INFO - Advanced Analysis initialized with output directory: C:/AIS_Data/Output
+2025-11-23 10:40:34,439 - Advanced_Analysis - INFO - Memory usage after initialization: RSS=157.3203125 MB, Percent=0.5157871279901028%
+2025-11-23 10:40:34,457 - Advanced_Analysis - INFO - Loading anomaly data...
+2025-11-23 10:40:34,463 - Advanced_Analysis - INFO - Loaded 412 anomalies from summary file
+2025-11-23 10:40:46,403 - Advanced_Analysis - INFO - Loading cached data...
+2025-11-23 10:40:46,405 - Advanced_Analysis - INFO - Memory usage before loading cached data: RSS=159.09765625 MB, Percent=0.5216142905077443%
+2025-11-23 10:40:46,408 - Advanced_Analysis - INFO - Found 0 matching cache files for date range 2024-10-21 to 2024-10-23
+2025-11-23 10:40:46,409 - Advanced_Analysis - WARNING - No matching cache files found
+2025-11-23 10:40:46,411 - Advanced_Analysis - WARNING - No cached data loaded
+2025-11-23 10:41:03,783 - Advanced_Analysis - INFO - Creating path map for vessel 366215000...
+2025-11-23 10:41:03,785 - Advanced_Analysis - ERROR - Error creating vessel map: 'MMSI'
+2025-11-23 10:41:03,793 - Advanced_Analysis - ERROR - Traceback (most recent call last):
+  File "c:\Users\chris\Downloads\git\AIS-LLM\MVP\advanced_analysis.py", line 1325, in create_vessel_map
+    vessel_data = df[df['MMSI'] == mmsi].copy()
+                     ~~^^^^^^^^
+  File "C:\Users\chris\AppData\Local\Programs\Python\Python314\Lib\site-packages\pandas\core\frame.py", line 4113, in __getitem__
+    indexer = self.columns.get_loc(key)
+  File "C:\Users\chris\AppData\Local\Programs\Python\Python314\Lib\site-packages\pandas\core\indexes\range.py", line 417, in get_loc
+    raise KeyError(key)
+KeyError: 'MMSI'
+
+2025-11-23 10:41:08,940 - Advanced_Analysis - INFO - Found 0 matching cache files for date range 2024-10-21 to 2024-10-23
+2025-11-23 10:41:08,941 - Advanced_Analysis - WARNING - No cached data files found for the specified date range
+2025-11-23 10:41:08,942 - Advanced_Analysis - WARNING - Dependency: sklearn: Vessel clustering will not be available
+2025-11-23 10:41:08,942 - Advanced_Analysis - INFO - Advanced Analysis initialized with output directory: C:/AIS_Data/Output
+2025-11-23 10:41:08,942 - Advanced_Analysis - INFO - Memory usage after initialization: RSS=162.1796875 MB, Percent=0.5317189745218525%
+2025-11-23 10:41:08,972 - Advanced_Analysis - INFO - Loading anomaly data...
+2025-11-23 10:41:08,976 - Advanced_Analysis - INFO - Loaded 412 anomalies from summary file
+2025-11-23 10:41:12,328 - Advanced_Analysis - INFO - Loading cached data...
+2025-11-23 10:41:12,328 - Advanced_Analysis - INFO - Memory usage before loading cached data: RSS=162.4921875 MB, Percent=0.5327435305689103%
+2025-11-23 10:41:12,329 - Advanced_Analysis - INFO - Found 0 matching cache files for date range 2024-10-21 to 2024-10-23
+2025-11-23 10:41:12,329 - Advanced_Analysis - WARNING - No matching cache files found
+2025-11-23 10:41:12,329 - Advanced_Analysis - WARNING - No cached data loaded
+2025-11-23 10:41:34,746 - Advanced_Analysis - INFO - Performing temporal pattern analysis...
+2025-11-23 10:41:35,485 - Advanced_Analysis - INFO - Temporal pattern analysis completed: C:/AIS_Data/Output\Temporal_Patterns_20251123_104134.html

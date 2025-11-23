@@ -1138,3 +1138,186 @@
 2025-11-22 21:06:32,432 - __main__ - INFO - Debug: Verifying output directory contents at: C:\AIS_Data\Output
 2025-11-22 21:06:32,433 - __main__ - INFO - Debug: Files in output directory: ['AIS_Anomalies_Summary.csv', 'All Anomalies Map.html', 'Analysis_Statistics.xlsx', 'Charts', 'Path_Maps']
 2025-11-22 21:06:32,433 - __main__ - INFO - AIS Fraud Detection Complete. Found 412 anomalies across 3 days.
+2025-11-23 09:54:38,773 - __main__ - INFO - Python version: 3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]
+2025-11-23 09:54:38,773 - __main__ - INFO - Python version info: 3.14.0
+2025-11-23 09:54:38,773 - __main__ - INFO - Python executable: C:\Users\chris\AppData\Local\Programs\Python\Python314\python.exe
+2025-11-23 09:54:39,104 - __main__ - INFO - GPU support detected and enabled (AMD HIP via PyHIP)
+2025-11-23 09:54:39,104 - __main__ - INFO - AMD GPU detected on Windows - functionality may be limited
+2025-11-23 09:54:39,104 - __main__ - INFO - Checking dependencies...
+2025-11-23 09:54:39,104 - __main__ - INFO - Python version: 3.14.0 (tags/v3.14.0:ebf955d, Oct  7 2025, 10:15:03) [MSC v.1944 64 bit (AMD64)]
+2025-11-23 09:54:39,104 - __main__ - INFO - Python version info: 3.14.0
+2025-11-23 09:54:39,104 - __main__ - INFO - Python executable: C:\Users\chris\AppData\Local\Programs\Python\Python314\python.exe
+2025-11-23 09:54:39,261 - __main__ - INFO - All dependencies are satisfied.
+2025-11-23 09:54:39,263 - __main__ - INFO - ======================================
+2025-11-23 09:54:39,263 - __main__ - INFO - SFD.py starting with parameters:
+2025-11-23 09:54:39,263 - __main__ - INFO - Start date: 2024-10-21
+2025-11-23 09:54:39,264 - __main__ - INFO - End date: 2024-10-23
+2025-11-23 09:54:39,264 - __main__ - INFO - Data source: noaa
+2025-11-23 09:54:39,264 - __main__ - INFO - Cache: Enabled
+2025-11-23 09:54:39,264 - __main__ - INFO - NOAA year: 2024 (from start date)
+2025-11-23 09:54:39,264 - __main__ - INFO - Data directory: C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet
+2025-11-23 09:54:39,264 - __main__ - INFO - Output directory: C:/AIS_Data/Output
+2025-11-23 09:54:39,264 - __main__ - INFO - Debug mode: True
+2025-11-23 09:54:39,264 - __main__ - INFO - ======================================
+2025-11-23 09:54:39,266 - __main__ - INFO - Created output directory: C:/AIS_Data/Output
+2025-11-23 09:54:39,266 - __main__ - INFO - S3 access is not enabled in config.ini
+2025-11-23 09:54:39,266 - __main__ - INFO - Warnings have been suppressed based on configuration
+2025-11-23 09:54:39,266 - __main__ - INFO - Fixed C: path format to: C:\/AIS_Data/Output
+2025-11-23 09:54:39,266 - __main__ - INFO - Output directory set to: C:\AIS_Data\Output
+2025-11-23 09:54:39,267 - __main__ - INFO - Verified output directory exists or was created: C:\AIS_Data\Output
+2025-11-23 09:54:39,267 - __main__ - INFO - Data source set to: noaa
+2025-11-23 09:54:39,267 - __main__ - INFO - NOAA year set to: 2024 (extracted from start date)
+2025-11-23 09:54:39,267 - __main__ - INFO - Data directory set to: C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet
+2025-11-23 09:54:39,267 - __main__ - DEBUG - Configuration parameters:
+2025-11-23 09:54:39,267 - __main__ - DEBUG - COG_HEADING_MAX_DIFF: 45
+2025-11-23 09:54:39,267 - __main__ - DEBUG - MIN_SPEED_FOR_COG_CHECK: 10
+2025-11-23 09:54:39,267 - __main__ - DEBUG - SPEED_THRESHOLD: 102
+2025-11-23 09:54:39,267 - __main__ - DEBUG - USE_DASK: True
+2025-11-23 09:54:39,267 - __main__ - DEBUG - USE_GPU: True
+2025-11-23 09:54:39,267 - __main__ - DEBUG - DATA_DIRECTORY: C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet
+2025-11-23 09:54:39,267 - __main__ - DEBUG - OUTPUT_DIRECTORY: C:\AIS_Data\Output
+2025-11-23 09:54:39,267 - __main__ - DEBUG - USE_S3: False
+2025-11-23 09:54:39,267 - __main__ - DEBUG - S3_DATA_URI: s3://ai-dsde-txg-datathon2025/teams/dreadnought/parquet/
+2025-11-23 09:54:39,267 - __main__ - DEBUG - TIME_DIFF_THRESHOLD_MIN: 240
+2025-11-23 09:54:39,267 - __main__ - DEBUG - BEACON_TIME_THRESHOLD_HOURS: 6.0
+2025-11-23 09:54:39,267 - __main__ - DEBUG - ais_beacon_on: True
+2025-11-23 09:54:39,267 - __main__ - DEBUG - ais_beacon_off: True
+2025-11-23 09:54:39,267 - __main__ - DEBUG - excessive_travel_distance_fast: True
+2025-11-23 09:54:39,267 - __main__ - DEBUG - cog-heading_inconsistency: False
+2025-11-23 09:54:39,267 - __main__ - DEBUG - loitering: False
+2025-11-23 09:54:39,267 - __main__ - DEBUG - rendezvous: False
+2025-11-23 09:54:39,267 - __main__ - DEBUG - identity_spoofing: False
+2025-11-23 09:54:39,267 - __main__ - DEBUG - zone_violations: False
+2025-11-23 09:54:39,267 - __main__ - DEBUG - LOITERING_RADIUS_NM: 5.0
+2025-11-23 09:54:39,267 - __main__ - DEBUG - LOITERING_DURATION_HOURS: 24.0
+2025-11-23 09:54:39,267 - __main__ - DEBUG - RENDEZVOUS_PROXIMITY_NM: 0.5
+2025-11-23 09:54:39,267 - __main__ - DEBUG - RENDEZVOUS_DURATION_MINUTES: 30
+2025-11-23 09:54:39,267 - __main__ - DEBUG - start_date: 2024-10-21
+2025-11-23 09:54:39,267 - __main__ - DEBUG - end_date: 2024-10-23
+2025-11-23 09:54:39,267 - __main__ - DEBUG - AWS:
+2025-11-23 09:54:39,267 - __main__ - DEBUG -   s3_access_key: 
+2025-11-23 09:54:39,267 - __main__ - DEBUG -   s3_secret_key: 
+2025-11-23 09:54:39,267 - __main__ - DEBUG -   s3_session_token: 
+2025-11-23 09:54:39,268 - __main__ - DEBUG -   s3_auth_method: keys
+2025-11-23 09:54:39,268 - __main__ - DEBUG -   s3_region: us-east-1
+2025-11-23 09:54:39,268 - __main__ - DEBUG -   s3_bucket_name: ai-dsde-txg-datathon2025
+2025-11-23 09:54:39,268 - __main__ - DEBUG -   s3_prefix: teams/dreadnought/parquet/
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_anomaly_summary: True
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_statistics_excel: True
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_statistics_csv: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_overall_map: True
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_vessel_path_maps: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_charts: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_anomaly_type_chart: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_vessel_anomaly_chart: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - generate_date_anomaly_chart: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - filter_to_anomaly_vessels_only: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - show_lat_long_grid: False
+2025-11-23 09:54:39,268 - __main__ - DEBUG - show_anomaly_heatmap: True
+2025-11-23 09:54:39,268 - __main__ - DEBUG - suppress_warnings: True
+2025-11-23 09:54:39,268 - __main__ - DEBUG - min_latitude: -90.0
+2025-11-23 09:54:39,268 - __main__ - DEBUG - max_latitude: 90.0
+2025-11-23 09:54:39,268 - __main__ - DEBUG - min_longitude: -180.0
+2025-11-23 09:54:39,268 - __main__ - DEBUG - max_longitude: 180.0
+2025-11-23 09:54:39,268 - __main__ - DEBUG - time_start_hour: 0
+2025-11-23 09:54:39,268 - __main__ - DEBUG - time_end_hour: 24
+2025-11-23 09:54:39,268 - __main__ - DEBUG - min_confidence: 75
+2025-11-23 09:54:39,268 - __main__ - DEBUG - max_anomalies_per_vessel: 10000
+2025-11-23 09:54:39,268 - __main__ - DEBUG - RESTRICTED_ZONES: [{'name': 'Strait of Hormuz', 'lat_min': 25.0, 'lat_max': 27.0, 'lon_min': 55.0, 'lon_max': 57.5}, {'name': 'South China Sea', 'lat_min': 5.0, 'lat_max': 25.0, 'lon_min': 105.0, 'lon_max': 120.0}]
+2025-11-23 09:54:39,268 - __main__ - DEBUG - filter_mmsi_list: []
+2025-11-23 09:54:39,268 - __main__ - DEBUG - SELECTED_SHIP_TYPES: [70]
+2025-11-23 09:54:39,268 - __main__ - DEBUG - DATA_SOURCE: noaa
+2025-11-23 09:54:39,268 - __main__ - DEBUG - NOAA_YEAR: 2024
+2025-11-23 09:54:39,269 - __main__ - INFO - Running fraud detection for date range 2024-10-21 to 2024-10-23
+2025-11-23 09:54:39,269 - __main__ - INFO - Processing data for: 2024-10-21 (C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet\ais-2024-10-21.parquet)
+2025-11-23 09:54:39,269 - __main__ - INFO - Created cache directory at C:\Users\chris\.ais_data_cache
+2025-11-23 09:54:39,270 - __main__ - INFO - Loading data from C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet\ais-2024-10-21.parquet
+2025-11-23 09:54:39,270 - __main__ - INFO - AMD GPU detected - using CPU/Dask for data loading, GPU for computations
+2025-11-23 09:54:39,320 - fsspec.local - DEBUG - open file: C:/Users/chris/AppData/Local/Temp/noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2/parquet/ais-2024-10-21.parquet
+2025-11-23 09:54:44,995 - __main__ - INFO - VesselType conversion done, found 8366003 valid vessel types out of 8380852 records
+2025-11-23 09:54:45,801 - __main__ - INFO - After dropna: 8366003 records remaining from 8380852
+2025-11-23 09:54:45,979 - __main__ - INFO - Filtering for main vessel types: [70]
+2025-11-23 09:54:46,157 - __main__ - INFO - After filtering: 687174 records match vessel types [70] (was 8366003)
+2025-11-23 09:54:46,528 - __main__ - INFO - Loaded initial day: 2024-10-21. No comparisons possible yet.
+2025-11-23 09:54:46,528 - __main__ - INFO - Processing data for: 2024-10-22 (C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet\ais-2024-10-22.parquet)
+2025-11-23 09:54:46,529 - __main__ - INFO - Loading data from C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet\ais-2024-10-22.parquet
+2025-11-23 09:54:46,529 - __main__ - INFO - AMD GPU detected - using CPU/Dask for data loading, GPU for computations
+2025-11-23 09:54:46,547 - fsspec.local - DEBUG - open file: C:/Users/chris/AppData/Local/Temp/noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2/parquet/ais-2024-10-22.parquet
+2025-11-23 09:54:52,350 - __main__ - INFO - VesselType conversion done, found 9089252 valid vessel types out of 9100953 records
+2025-11-23 09:54:53,137 - __main__ - INFO - After dropna: 9089252 records remaining from 9100953
+2025-11-23 09:54:53,338 - __main__ - INFO - Filtering for main vessel types: [70]
+2025-11-23 09:54:53,540 - __main__ - INFO - After filtering: 754402 records match vessel types [70] (was 9089252)
+2025-11-23 09:54:53,940 - __main__ - INFO - Detecting AIS beacon on/off anomalies...
+2025-11-23 09:54:53,948 - __main__ - INFO - Found 147 potential vessels with AIS beacon on
+2025-11-23 09:54:54,254 - __main__ - INFO - Confirmed 104 vessels with AIS beacon on (gap >= 6.0 hours)
+2025-11-23 09:54:54,262 - __main__ - INFO - Found 143 potential vessels with AIS beacon off
+2025-11-23 09:54:54,622 - __main__ - INFO - Confirmed 100 vessels with AIS beacon off (gap >= 6.0 hours)
+2025-11-23 09:54:54,628 - __main__ - INFO - Found 204 AIS beacon anomalies.
+2025-11-23 09:54:54,628 - __main__ - INFO - Detecting speed anomalies (position jumps)...
+2025-11-23 09:55:00,378 - __main__ - INFO - Found 1 speed anomalies.
+2025-11-23 09:55:00,379 - __main__ - INFO - Total anomalies detected for 2024-10-22: 205
+2025-11-23 09:55:00,379 - __main__ - INFO - Processing data for: 2024-10-23 (C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet\ais-2024-10-23.parquet)
+2025-11-23 09:55:00,379 - __main__ - INFO - Loading data from C:\Users\chris\AppData\Local\Temp\noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2\parquet\ais-2024-10-23.parquet
+2025-11-23 09:55:00,379 - __main__ - INFO - AMD GPU detected - using CPU/Dask for data loading, GPU for computations
+2025-11-23 09:55:00,398 - fsspec.local - DEBUG - open file: C:/Users/chris/AppData/Local/Temp/noaa_ais_noaa_2024-10-21_2024-10-23_1763909575_mcsanos2/parquet/ais-2024-10-23.parquet
+2025-11-23 09:55:04,298 - __main__ - INFO - VesselType conversion done, found 9026143 valid vessel types out of 9039810 records
+2025-11-23 09:55:05,252 - __main__ - INFO - After dropna: 9026143 records remaining from 9039810
+2025-11-23 09:55:05,453 - __main__ - INFO - Filtering for main vessel types: [70]
+2025-11-23 09:55:05,970 - __main__ - INFO - After filtering: 765547 records match vessel types [70] (was 9026143)
+2025-11-23 09:55:06,640 - __main__ - INFO - Detecting AIS beacon on/off anomalies...
+2025-11-23 09:55:06,659 - __main__ - INFO - Found 157 potential vessels with AIS beacon on
+2025-11-23 09:55:08,317 - __main__ - INFO - Confirmed 107 vessels with AIS beacon on (gap >= 6.0 hours)
+2025-11-23 09:55:08,326 - __main__ - INFO - Found 145 potential vessels with AIS beacon off
+2025-11-23 09:55:08,700 - __main__ - INFO - Confirmed 100 vessels with AIS beacon off (gap >= 6.0 hours)
+2025-11-23 09:55:08,703 - __main__ - INFO - Found 207 AIS beacon anomalies.
+2025-11-23 09:55:08,703 - __main__ - INFO - Detecting speed anomalies (position jumps)...
+2025-11-23 09:55:11,938 - __main__ - INFO - Total anomalies detected for 2024-10-23: 207
+2025-11-23 09:55:11,944 - __main__ - INFO - Filtered anomalies by type: 412 of 412 anomalies retained (enabled types: AIS_Beacon_Off, AIS_Beacon_On, Speed)
+2025-11-23 09:55:11,945 - __main__ - INFO - Applying analysis filters to detected anomalies
+2025-11-23 09:55:11,945 - __main__ - INFO - Applying analysis filters to 412 anomalies
+2025-11-23 09:55:11,945 - __main__ - INFO - Anomaly type filtering: No filter applied, all anomalies retained
+2025-11-23 09:55:11,945 - __main__ - INFO - Geographic filtering: 412 of 412 anomalies within bounds
+2025-11-23 09:55:11,947 - __main__ - INFO - Time filtering: 412 of 412 anomalies within time range 0-24
+2025-11-23 09:55:11,986 - __main__ - INFO - Anomaly count limiting: 412 of 412 anomalies after applying max 10000 per vessel
+2025-11-23 09:55:11,986 - __main__ - INFO - Analysis filtering complete: 412 anomalies remain from original 412
+2025-11-23 09:55:11,987 - __main__ - INFO - Debug: Attempting to use output directory: C:\AIS_Data\Output
+2025-11-23 09:55:11,987 - __main__ - INFO - Debug: Windows path detected, ensuring proper format: C:\AIS_Data\Output
+2025-11-23 09:55:11,987 - __main__ - INFO - Debug: Detected drive letter: C
+2025-11-23 09:55:11,987 - __main__ - INFO - Debug: Available drives: ['C:\\']
+2025-11-23 09:55:11,987 - __main__ - INFO - Debug: Creating directory if it doesn't exist: C:\AIS_Data\Output\
+2025-11-23 09:55:11,988 - __main__ - INFO - Debug: Directory exists or was created: C:\AIS_Data\Output\
+2025-11-23 09:55:11,988 - __main__ - INFO - Debug: Testing write permissions with file: C:\AIS_Data\Output\.write_test
+2025-11-23 09:55:11,988 - __main__ - INFO - Debug: Write permission verified for directory: C:\AIS_Data\Output\
+2025-11-23 09:55:11,988 - __main__ - INFO - Debug: Attempting to save CSV to: C:\AIS_Data\Output\AIS_Anomalies_Summary.csv
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Successfully saved CSV to: C:\AIS_Data\Output\AIS_Anomalies_Summary.csv
+2025-11-23 09:55:11,998 - __main__ - INFO - Global map boundaries calculated: LAT [7.18558 to 54.58679], LON [-164.245 to 150.30878]
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Creating charts directory if it doesn't exist: C:\AIS_Data\Output\Charts
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Charts directory exists or was created: C:\AIS_Data\Output\Charts
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Generating summary charts in: C:\AIS_Data\Output\Charts
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Number of anomalies for charts: 412
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Chart generation enabled: False
+2025-11-23 09:55:11,998 - __main__ - INFO - Chart generation disabled in configuration
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Successfully generated charts in: C:\AIS_Data\Output\Charts
+2025-11-23 09:55:11,998 - __main__ - INFO - Debug: Creating overall map at: C:\AIS_Data\Output\All Anomalies Map.html
+2025-11-23 09:55:12,000 - __main__ - INFO - Latitude/longitude grid lines disabled by configuration
+2025-11-23 09:55:12,376 - __main__ - INFO - Map visualization saved to C:\AIS_Data\Output\All Anomalies Map.html
+2025-11-23 09:55:12,376 - __main__ - INFO - Debug: Successfully created overall map at: C:\AIS_Data\Output\All Anomalies Map.html
+2025-11-23 09:55:12,376 - __main__ - INFO - Debug: Generating analysis statistics in: C:\AIS_Data\Output
+2025-11-23 09:55:12,376 - __main__ - INFO - Generating analysis statistics report
+2025-11-23 09:55:47,413 - __main__ - INFO - Added 'All Anomalies' worksheet to Excel file
+2025-11-23 09:55:47,446 - __main__ - INFO - Added worksheet 'Anomalies 2024-10-22' with 205 anomalies
+2025-11-23 09:55:47,489 - __main__ - INFO - Added worksheet 'Anomalies 2024-10-23' with 207 anomalies
+2025-11-23 09:55:47,780 - __main__ - INFO - Excel statistics saved to C:\AIS_Data\Output\Analysis_Statistics.xlsx
+2025-11-23 09:55:47,780 - __main__ - INFO - CSV statistics generation is disabled in configuration
+2025-11-23 09:55:47,781 - __main__ - ERROR - Debug: Failed to generate analysis statistics: cannot access local variable 'csv_path' where it is not associated with a value
+2025-11-23 09:55:47,792 - __main__ - INFO - Debug: Successfully generated analysis statistics
+2025-11-23 09:55:47,792 - __main__ - INFO - Debug: Creating vessel path maps in: C:\AIS_Data\Output
+2025-11-23 09:55:47,792 - __main__ - INFO - Vessel path map generation is disabled in configuration
+2025-11-23 09:55:47,792 - __main__ - INFO - Debug: Successfully created vessel path maps
+2025-11-23 09:55:47,792 - __main__ - INFO - Debug: Generating anomaly heatmaps
+2025-11-23 09:55:47,792 - __main__ - INFO - Generating anomalies heatmap
+2025-11-23 09:55:47,829 - __main__ - INFO - Anomaly heatmap saved to C:\AIS_Data\Output\Path_Maps\Anomaly_Heatmap.html
+2025-11-23 09:55:47,830 - __main__ - INFO - Debug: Successfully created anomaly heatmap
+2025-11-23 09:55:47,830 - __main__ - INFO - Debug: Verifying output directory contents at: C:\AIS_Data\Output
+2025-11-23 09:55:47,831 - __main__ - INFO - Debug: Files in output directory: ['AIS_Anomalies_Summary.csv', 'All Anomalies Map.html', 'Analysis_Statistics.xlsx', 'Charts', 'Path_Maps']
+2025-11-23 09:55:47,831 - __main__ - INFO - AIS Fraud Detection Complete. Found 412 anomalies across 3 days.
