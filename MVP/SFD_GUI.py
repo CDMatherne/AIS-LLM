@@ -15,7 +15,7 @@ import sys
 import configparser
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
-from datetime import datetime
+from datetime import datetime, timedelta
 import subprocess
 import platform
 import logging
@@ -30,18 +30,18 @@ import tempfile
 import shutil
 
 # Advanced Analysis import
+# Note: logger is not yet defined here, so we use print for import errors
 try:
     from advanced_analysis import AdvancedAnalysisGUI
     ADVANCED_ANALYSIS_AVAILABLE = True
 except ImportError:
     ADVANCED_ANALYSIS_AVAILABLE = False
-    logger.warning("Advanced analysis module not available. Install required dependencies.")
+    # Logger not yet initialized, use print instead
+    print("Warning: Advanced analysis module not available. Install required dependencies.")
 import requests
 import zipfile
-from datetime import datetime, timedelta
 from urllib.parse import urljoin
 import concurrent.futures
-
 
 class DataManager:
     """Handles data download, processing, and management for various data sources"""
@@ -117,6 +117,60 @@ class DataManager:
         except Exception:
             return False
     
+    def _get_cache_dir(self):
+        """Get the cache directory for storing processed parquet files"""
+        home_dir = os.path.expanduser("~")
+        cache_dir = os.path.join(home_dir, ".ais_data_cache")
+        if not os.path.exists(cache_dir):
+            try:
+                os.makedirs(cache_dir, exist_ok=True)
+            except Exception:
+                pass
+        return cache_dir
+    
+    def _get_temp_dir(self):
+        """Get the AISDataTemp directory for temporary files during analysis.
+        Creates it if it doesn't exist, reuses it if it does.
+        
+        Returns:
+            str: Path to AISDataTemp directory
+        """
+        # Use current working directory or script directory as base
+        base_dir = os.getcwd()
+        temp_dir = os.path.join(base_dir, "AISDataTemp")
+        
+        # Create directory if it doesn't exist
+        if not os.path.exists(temp_dir):
+            try:
+                os.makedirs(temp_dir, exist_ok=True)
+                self.log(f"Created AISDataTemp directory: {temp_dir}")
+            except Exception as e:
+                self.log(f"Warning: Could not create AISDataTemp directory: {e}")
+                # Fallback to system temp if current directory fails
+                temp_dir = os.path.join(tempfile.gettempdir(), "AISDataTemp")
+                os.makedirs(temp_dir, exist_ok=True)
+        else:
+            self.log(f"Using existing AISDataTemp directory: {temp_dir}")
+        
+        return temp_dir
+    
+    def _check_cached_parquet(self, date):
+        """Check if a parquet file for the given date already exists in cache
+        
+        Args:
+            date: datetime object for the date to check
+            
+        Returns:
+            str or None: Path to cached parquet file if exists, None otherwise
+        """
+        cache_dir = self._get_cache_dir()
+        parquet_filename = f"ais-{date.year}-{date.month:02d}-{date.day:02d}.parquet"
+        cached_path = os.path.join(cache_dir, parquet_filename)
+        
+        if os.path.exists(cached_path) and os.path.getsize(cached_path) > 0:
+            return cached_path
+        return None
+    
     def _process_zip_file(self, zip_path, output_dir):
         """Process a ZIP file containing CSV data
         
@@ -133,9 +187,11 @@ class DataManager:
             
         try:
             import pandas as pd
-            # Extract the zip file to a temporary directory
-            extract_dir = tempfile.mkdtemp(prefix="noaa_extract_")
-            self.log(f"📦 EXTRACTING: {os.path.basename(zip_path)}...")
+            # Extract the zip file to a temporary directory within AISDataTemp
+            temp_base = self._get_temp_dir()
+            extract_dir = os.path.join(temp_base, "extract")
+            os.makedirs(extract_dir, exist_ok=True)
+            self.log(f"EXTRACTING: {os.path.basename(zip_path)}...")
             
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(extract_dir)
@@ -169,7 +225,7 @@ class DataManager:
                     
                 parquet_path = os.path.join(output_dir, parquet_filename)
                 
-                self.log(f"💾 CONVERTING: {csv_filename} to parquet format...")
+                self.log(f"CONVERTING: {csv_filename} to parquet format...")
                 try:
                     # Show progress on large files
                     filesize = os.path.getsize(csv_file) / (1024 * 1024)  # Size in MB
@@ -183,9 +239,18 @@ class DataManager:
                     self.log(f"Error converting {csv_filename}: {str(e)}")
                     success = False
             
-            # Clean up
-            shutil.rmtree(extract_dir)
-            os.remove(zip_path)
+            # Clean up extraction directory (but keep AISDataTemp base directory)
+            try:
+                shutil.rmtree(extract_dir, ignore_errors=True)
+            except Exception as e:
+                self.log(f"Warning: Could not clean up extract directory: {e}")
+            
+            # Remove the zip file
+            try:
+                os.remove(zip_path)
+            except Exception as e:
+                self.log(f"Warning: Could not remove zip file: {e}")
+            
             return success
         except Exception as e:
             self.log(f"Error processing zip file: {str(e)}")
@@ -210,17 +275,16 @@ class DataManager:
             self.log(f"Invalid date format: {e}")
             return False, None
         
-        # Create session ID and temporary directories
-        session_id = f"noaa_{start_date}_{end_date}_{int(time.time())}"
-        self.base_temp_dir = tempfile.mkdtemp(prefix=f"noaa_ais_{session_id}_")
+        # Use single AISDataTemp directory for all temporary files
+        self.base_temp_dir = self._get_temp_dir()
         download_dir = os.path.join(self.base_temp_dir, "downloads")
         self.parquet_dir = os.path.join(self.base_temp_dir, "parquet")
         
         os.makedirs(download_dir, exist_ok=True)
         os.makedirs(self.parquet_dir, exist_ok=True)
         
-        self.log(f"📂 Created temporary directories:\n - Base: {self.base_temp_dir}\n - Parquet: {self.parquet_dir}")
-        self.log(f"📡 STARTING DOWNLOAD PROCESS: NOAA AIS data from {start_date} to {end_date}")
+        self.log(f"Using temporary directory:\n - Base: {self.base_temp_dir}\n - Parquet: {self.parquet_dir}")
+        self.log(f"STARTING DOWNLOAD PROCESS: NOAA AIS data from {start_date} to {end_date}")
         self.log("Download phase will be followed by extraction and conversion.")
         
         # Construct and validate base URL
@@ -236,27 +300,81 @@ class DataManager:
             dates.append(current_date)
             current_date += timedelta(days=1)
         
-        self.log(f"Will download {len(dates)} daily files")
+        total_files = len(dates)
+        self.log(f"Will download {total_files} daily files")
         
-        # Download and process files
-        success_count = 0
-        for i, date in enumerate(dates):
+        # Check for cached files first
+        cache_dir = self._get_cache_dir()
+        cached_files = []
+        files_to_download = []
+        
+        for date in dates:
+            cached_path = self._check_cached_parquet(date)
+            if cached_path:
+                cached_files.append((date, cached_path))
+            else:
+                files_to_download.append(date)
+        
+        # Calculate total files (cached + to download) for progress tracking
+        total_files = len(cached_files) + len(files_to_download)
+        if total_files > 0:
+            self.log(f"Total files to process: {total_files} ({len(cached_files)} cached, {len(files_to_download)} to download)")
+        
+        # Report cached files found and copy them to output directory
+        cached_success_count = 0
+        if cached_files:
+            self.log(f"Found {len(cached_files)} cached file(s), skipping download for those dates")
+            for idx, (date, cached_path) in enumerate(cached_files):
+                file_num = idx + 1
+                self.log(f"   Using cached: ais-{date.year}-{date.month:02d}-{date.day:02d}.parquet ({file_num}/{total_files})")
+                # Copy cached file to output directory
+                parquet_filename = f"ais-{date.year}-{date.month:02d}-{date.day:02d}.parquet"
+                target_path = os.path.join(self.parquet_dir, parquet_filename)
+                try:
+                    shutil.copy2(cached_path, target_path)
+                    cached_success_count += 1
+                except Exception as e:
+                    self.log(f"Error: Could not copy cached file {parquet_filename}: {e}")
+                    # Don't count failed copies as successes
+        
+        # Download and process files that aren't cached
+        success_count = cached_success_count
+        
+        if files_to_download:
+            self.log(f"Downloading {len(files_to_download)} file(s) that are not cached...")
+        
+        # Track current file number (including cached files)
+        current_file_num = len(cached_files)
+        
+        for i, date in enumerate(files_to_download):
             # Construct filename and URL
             filename = f"AIS_{date.year}_{date.month:02d}_{date.day:02d}.zip"
             url = urljoin(base_url, filename)
             zip_path = os.path.join(download_dir, filename)
             
-            # Download the file
-            self.log(f"⬇️ DOWNLOADING: {filename} ({i+1}/{len(dates)})")
+            # Download the file (use absolute file number including cached)
+            current_file_num += 1
+            self.log(f"DOWNLOADING: {filename} ({current_file_num}/{total_files})")
             if self._download_file(url, zip_path):
-                self.log(f"📂 Download complete: {filename} ({i+1}/{len(dates)})")
+                self.log(f"Download complete: {filename} ({current_file_num}/{total_files})")
                 if self._process_zip_file(zip_path, self.parquet_dir):
                     success_count += 1
-                    self.log(f"✅ Successfully processed {filename}")
+                    self.log(f"Successfully processed {filename}")
+                    
+                    # Save to cache for future use
+                    parquet_filename = f"ais-{date.year}-{date.month:02d}-{date.day:02d}.parquet"
+                    parquet_path = os.path.join(self.parquet_dir, parquet_filename)
+                    if os.path.exists(parquet_path):
+                        cache_path = os.path.join(cache_dir, parquet_filename)
+                        try:
+                            shutil.copy2(parquet_path, cache_path)
+                            self.log(f"Cached: {parquet_filename} for future use")
+                        except Exception as e:
+                            self.log(f"Warning: Could not cache {parquet_filename}: {e}")
                 else:
-                    self.log(f"❌ Failed to process {filename}")
+                    self.log(f"Failed to process {filename}")
             else:
-                self.log(f"❌ Failed to download {filename}")
+                self.log(f"Failed to download {filename}")
         
         if success_count == 0:
             self.log("No files were successfully downloaded and processed")
@@ -274,7 +392,7 @@ def check_dependencies():
     Returns:
         bool: True if all dependencies are satisfied, False otherwise
     """
-    logger = logging.getLogger("SDF_GUI")
+    # Use module-level logger (defined at line 585)
     logger.info("Checking dependencies...")
     
     # Find the requirements.txt file (look in script directory first)
@@ -466,6 +584,259 @@ logger = logging.getLogger("SDF_GUI")
 
 # Define constants
 BATCH_FILE_NAME = "run_sfd.bat"
+
+
+class DownloadProgressWindow(tk.Toplevel):
+    """Progress window specifically for download/extraction/conversion phase"""
+    
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Downloading Data")
+        self.geometry("800x400")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.parent = parent
+        
+        # Progress tracking
+        self.total_files = 0
+        self.current_file = 0
+        self.current_phase = "Initializing"  # Download, Extract, Convert
+        self.current_activity = "Preparing download..."
+        
+        # Main frame
+        main_frame = ttk.Frame(self, padding=20)
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # Title
+        ttk.Label(main_frame, text="Downloading NOAA AIS Data", 
+                 font=("Arial", 14, "bold")).pack(pady=(0, 10))
+        
+        # Progress bar frame
+        progress_frame = ttk.Frame(main_frame)
+        progress_frame.pack(fill=tk.X, pady=10)
+        
+        ttk.Label(progress_frame, text="Overall Progress:", 
+                 font=("Arial", 10)).pack(anchor=tk.W)
+        
+        self.progress_var = tk.DoubleVar()
+        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var, 
+                                            maximum=100, length=700, mode='determinate')
+        self.progress_bar.pack(fill=tk.X, pady=5)
+        
+        self.progress_label = ttk.Label(progress_frame, text="0%", font=("Arial", 9))
+        self.progress_label.pack(anchor=tk.E)
+        
+        # Current activity frame
+        activity_frame = ttk.Frame(main_frame)
+        activity_frame.pack(fill=tk.X, pady=10)
+        
+        ttk.Label(activity_frame, text="Current Activity:", 
+                 font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        
+        self.activity_var = tk.StringVar(value="Initializing...")
+        activity_label = ttk.Label(activity_frame, textvariable=self.activity_var, 
+                                  font=("Arial", 9), wraplength=750, justify=tk.LEFT)
+        activity_label.pack(anchor=tk.W, pady=5)
+        
+        # Status text area
+        status_frame = ttk.Frame(main_frame)
+        status_frame.pack(fill=tk.BOTH, expand=True, pady=10)
+        
+        ttk.Label(status_frame, text="Status Messages:", 
+                 font=("Arial", 10, "bold")).pack(anchor=tk.W)
+        
+        self.status_text = scrolledtext.ScrolledText(status_frame, height=8, 
+                                                    font=("Consolas", 9), wrap=tk.WORD)
+        self.status_text.pack(fill=tk.BOTH, expand=True)
+        
+        # Center window
+        self.update_idletasks()
+        x = (self.winfo_screenwidth() // 2) - (self.winfo_width() // 2)
+        y = (self.winfo_screenheight() // 2) - (self.winfo_height() // 2)
+        self.geometry(f"+{x}+{y}")
+        
+        # Prevent closing during download
+        self.protocol("WM_DELETE_WINDOW", lambda: None)
+    
+    def add_message(self, message):
+        """Add a message to the status text and update progress if applicable"""
+        def update_gui():
+            try:
+                if not self.winfo_exists():
+                    return
+                
+                # Add message to status text
+                message_str = str(message) if isinstance(message, str) else str(message)
+                self.status_text.insert(tk.END, message_str + "\n")
+                self.status_text.see(tk.END)
+                
+                # Parse message to update progress
+                self._parse_progress_message(message_str)
+                
+                self.update_idletasks()
+            except Exception as e:
+                print(f"Error updating download progress: {str(e)}")
+        
+        self.after(0, update_gui)
+    
+    def _parse_progress_message(self, message):
+        """Parse log messages to extract progress information"""
+        import re
+        message_upper = message.upper()
+        
+        # Extract total file count - match "Will download X daily files" or "Total files to process: X"
+        if "TOTAL FILES TO PROCESS" in message_upper:
+            match = re.search(r'TOTAL FILES TO PROCESS:\s*(\d+)', message_upper)
+            if match:
+                self.total_files = int(match.group(1))
+                self._update_progress()
+        elif ("WILL DOWNLOAD" in message_upper or ("WILL" in message_upper and "DOWNLOAD" in message_upper)):
+            if "DAILY FILES" in message_upper or "FILES" in message_upper:
+                match = re.search(r'(\d+)\s+(?:DAILY\s+)?FILES?', message_upper)
+                if match:
+                    self.total_files = int(match.group(1))
+                    self._update_progress()
+        
+        # Track cached files - look for "Using cached" with file numbers
+        if "USING CACHED:" in message_upper or ("CACHED:" in message_upper and "(" in message):
+            # Extract file number from cached message like "(1/3)"
+            match = re.search(r'\((\d+)/(\d+)\)', message)
+            if match:
+                file_num = int(match.group(1))
+                total = int(match.group(2))
+                if not self.total_files:
+                    self.total_files = total
+                self.current_file = file_num
+                self.current_phase = "Cached"
+                self.current_activity = message.strip()
+                self._update_progress()
+        
+        # Track current file and phase for downloads
+        elif "DOWNLOADING:" in message_upper:
+            match = re.search(r'\((\d+)/(\d+)\)', message)
+            if match:
+                self.current_file = int(match.group(1))
+                if not self.total_files:
+                    self.total_files = int(match.group(2))
+                self.current_phase = "Download"
+                self.current_activity = message.strip()
+                self._update_progress()
+        
+        elif "DOWNLOAD COMPLETE:" in message_upper or "DOWNLOAD COMPLETE" in message_upper:
+            # Extract file number from completion message
+            match = re.search(r'\((\d+)/(\d+)\)', message)
+            if match:
+                self.current_file = int(match.group(1))
+                if not self.total_files:
+                    self.total_files = int(match.group(2))
+            self.current_phase = "Download"
+            self.current_activity = message.strip()
+            self._update_progress()
+        
+        elif "EXTRACTING:" in message_upper:
+            self.current_phase = "Extract"
+            self.current_activity = message.strip()
+            self._update_progress()
+        
+        elif "CONVERTING:" in message_upper:
+            self.current_phase = "Convert"
+            self.current_activity = message.strip()
+            self._update_progress()
+        
+        elif "CONVERSION COMPLETE:" in message_upper or "SUCCESSFULLY PROCESSED" in message_upper:
+            self.current_phase = "Convert"
+            self.current_activity = message.strip()
+            self._update_progress()
+            # Move to next file after conversion completes
+            if self.current_file < self.total_files:
+                self.current_file += 1
+                self._update_progress()
+        
+        elif "STARTING DOWNLOAD PROCESS" in message_upper:
+            self.current_activity = message.strip()
+            self._update_progress()
+        
+        elif "FOUND" in message_upper and ("CACHED FILE" in message_upper or "CACHED" in message_upper):
+            # Extract number of cached files
+            match = re.search(r'FOUND\s+(\d+)', message_upper)
+            if match:
+                cached_count = int(match.group(1))
+                # Update activity but don't change phase yet
+                self.current_activity = message.strip()
+                self._update_progress()
+        
+        # Always update activity for other messages
+        else:
+            # Generic update for initialization and other messages
+            if "STARTING" in message_upper or "PROCESS" in message_upper or "USING TEMPORARY" in message_upper:
+                self.current_activity = message.strip()
+                self._update_progress()
+    
+    def _update_progress(self):
+        """Update the progress bar based on current state"""
+        if self.total_files == 0:
+            self.progress_var.set(0)
+            self.progress_label.config(text="0% - Initializing...")
+            self.activity_var.set(self.current_activity)
+            return
+        
+        # Calculate progress
+        # Each file has 3 phases: Download (0-33%), Extract (33-66%), Convert (66-100%)
+        # Overall: (file-1)/total * 100 + (phase_progress)/total
+        
+        phase_progress = 0
+        if self.current_phase == "Cached":
+            phase_progress = 100  # Cached files are already complete
+        elif self.current_phase == "Download":
+            phase_progress = 0  # Start of download phase
+        elif self.current_phase == "Extract":
+            phase_progress = 33  # Start of extract phase
+        elif self.current_phase == "Convert":
+            phase_progress = 66  # Start of convert phase
+        elif self.current_phase == "Initializing":
+            phase_progress = 0
+        
+        # Calculate overall progress
+        if self.total_files > 0:
+            if self.current_file > 0:
+                # Progress from completed files (files before current)
+                completed_files_progress = (self.current_file - 1) / self.total_files * 100
+                # Progress from current file's phase
+                current_file_phase_progress = phase_progress / self.total_files
+                total_progress = completed_files_progress + current_file_phase_progress
+            else:
+                # No file started yet, but we know total
+                total_progress = 0
+        else:
+            total_progress = 0
+        
+        # Clamp to 0-100
+        total_progress = max(0, min(100, total_progress))
+        
+        self.progress_var.set(total_progress)
+        self.progress_label.config(text=f"{total_progress:.1f}%")
+        
+        # Update activity - show current file and phase
+        if self.current_file > 0 and self.total_files > 0:
+            # Extract just the filename or key info from activity
+            activity_display = self.current_activity
+            if len(activity_display) > 60:
+                activity_display = activity_display[:57] + "..."
+            activity_text = f"File {self.current_file}/{self.total_files} - {self.current_phase}: {activity_display}"
+        else:
+            activity_text = self.current_activity
+        
+        self.activity_var.set(activity_text)
+    
+    def set_total_files(self, count):
+        """Set the total number of files to process"""
+        self.total_files = count
+        self._update_progress()
+    
+    def close(self):
+        """Close the download progress window"""
+        self.destroy()
+
 
 class ProgressWindow(tk.Toplevel):
     def __init__(self, parent):
@@ -1058,26 +1429,80 @@ class ProgressWindow(tk.Toplevel):
         super().destroy()
     
     def cleanup_temp_files(self):
-        """Clean up any temporary files created during analysis"""
-        # Remove temporary NOAA data directory if it exists
-        if hasattr(self, 'noaa_temp_dir') and self.noaa_temp_dir and os.path.exists(self.noaa_temp_dir):
-            parent_dir = os.path.dirname(self.noaa_temp_dir)
-            try:
-                self.add_message("\n===== CLEANING UP TEMPORARY FILES =====\n")
-                self.add_message(f"Cleaning up temporary NOAA data directory: {parent_dir}")
-                
-                # Wait a moment in case any files are still in use
-                time.sleep(0.5)
-                
-                shutil.rmtree(parent_dir, ignore_errors=True)
-                self.add_message("\n✅ Temporary files cleaned up successfully.")
-            except Exception as e:
-                self.add_message(f"\n⚠️ Warning: Error cleaning up temporary files: {str(e)}")
-                self.add_message("This is not critical, but you may want to manually delete temporary files later.")
-                # Don't raise the exception, just log it
-                logger.error(f"Error cleaning up temporary files: {str(e)}")
+        """Clean up temporary files created during analysis.
+        Note: AISDataTemp directory is preserved for reuse, only cleans up subdirectories.
+        """
+        # Clean up extract subdirectory if it exists
+        if hasattr(self, 'noaa_temp_dir') and self.noaa_temp_dir:
+            # AISDataTemp is now persistent, so we only clean up specific subdirectories
+            extract_dir = os.path.join(self.noaa_temp_dir, "extract")
+            if os.path.exists(extract_dir):
+                try:
+                    self.add_message("\n===== CLEANING UP TEMPORARY FILES =====\n")
+                    self.add_message(f"Cleaning up extraction directory: {extract_dir}")
+                    
+                    # Wait a moment in case any files are still in use
+                    time.sleep(0.5)
+                    
+                    shutil.rmtree(extract_dir, ignore_errors=True)
+                    self.add_message("\nTemporary extraction files cleaned up successfully.")
+                    self.add_message(f"Note: AISDataTemp directory is preserved for reuse: {self.noaa_temp_dir}")
+                except Exception as e:
+                    self.add_message(f"\nWarning: Error cleaning up temporary files: {str(e)}")
+                    self.add_message("This is not critical, but you may want to manually delete temporary files later.")
+                    # Don't raise the exception, just log it
+                    logger.error(f"Error cleaning up temporary files: {str(e)}")
 
 class SDFGUI:
+    def _get_ais_temp_dir(self):
+        """Get the AISDataTemp directory path"""
+        base_dir = os.getcwd()
+        temp_dir = os.path.join(base_dir, "AISDataTemp")
+        # Fallback to system temp if not in current directory
+        if not os.path.exists(temp_dir):
+            temp_dir = os.path.join(tempfile.gettempdir(), "AISDataTemp")
+        return temp_dir
+    
+    def _delete_temp_directory(self):
+        """Delete the AISDataTemp directory and all its contents"""
+        temp_dir = self._get_ais_temp_dir()
+        if os.path.exists(temp_dir):
+            try:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+                logger.info(f"Deleted temporary directory: {temp_dir}")
+                return True
+            except Exception as e:
+                logger.error(f"Error deleting temporary directory: {e}")
+                return False
+        return True  # Directory doesn't exist, so nothing to delete
+    
+    def on_closing(self):
+        """Handle window closing - ask user if they want to delete temp files"""
+        temp_dir = self._get_ais_temp_dir()
+        temp_exists = os.path.exists(temp_dir)
+        
+        if temp_exists:
+            # Ask user if they want to delete temp files
+            response = messagebox.askyesno(
+                "Delete Temporary Files?",
+                f"The temporary directory exists:\n{temp_dir}\n\n"
+                "Would you like to delete it before closing?\n\n"
+                "Yes - Delete temporary files and close\n"
+                "No - Keep temporary files and close",
+                icon='question'
+            )
+            
+            if response:  # User clicked Yes
+                try:
+                    self._delete_temp_directory()
+                    messagebox.showinfo("Success", "Temporary files deleted successfully.")
+                except Exception as e:
+                    messagebox.showerror("Error", f"Failed to delete temporary files:\n{str(e)}\n\n"
+                                                "You may need to delete them manually.")
+        
+        # Close the window
+        self.root.destroy()
+    
     def reset_for_new_analysis(self):
         """Reset the UI for a new analysis run"""
         # This method would be called when the user wants to start a fresh analysis
@@ -1196,15 +1621,15 @@ class SDFGUI:
         def toggle_section():
             if expanded.get():
                 content_frame.pack(fill=tk.X, padx=10, pady=5)
-                toggle_btn.configure(text=f"▼ {title}")
+                toggle_btn.configure(text=f"[EXPANDED] {title}")
             else:
                 content_frame.pack_forget()
-                toggle_btn.configure(text=f"▶ {title}")
+                toggle_btn.configure(text=f"[COLLAPSED] {title}")
         
         # Create toggle button
         toggle_btn = ttk.Button(
             section_header, 
-            text=f"▼ {title}" if default_expanded else f"▶ {title}", 
+            text=f"[EXPANDED] {title}" if default_expanded else f"[COLLAPSED] {title}", 
             command=lambda: [expanded.set(not expanded.get()), toggle_section()]
         )
         toggle_btn.pack(fill=tk.X, padx=10)
@@ -1219,6 +1644,9 @@ class SDFGUI:
         self.root = root
         self.root.title("AIS Shipping Fraud Detection System")
         self.root.geometry("1680x840")
+        
+        # Set up window close protocol to ask about temp files
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         # Try to load the banner image
         try:
@@ -1455,6 +1883,7 @@ class SDFGUI:
         self.create_data_tab()
         self.create_zone_violations_tab()
         self.create_output_controls_tab()
+        self.create_instructions_tab()
                 
         # Create bottom buttons
         self.create_bottom_buttons()
@@ -1494,7 +1923,7 @@ class SDFGUI:
         ttk.Button(bottom_row_frame, text="Check for GPU Acceleration", command=self.check_gpu_acceleration).pack(side=tk.LEFT, padx=5, pady=5, expand=True, fill=tk.X)
         
         # Exit button (red)
-        exit_btn = tk.Button(bottom_row_frame, text="Exit", command=self.root.destroy, bg="red", fg="white", font=("Arial", 10, "bold"))
+        exit_btn = tk.Button(bottom_row_frame, text="Exit", command=self.on_closing, bg="red", fg="white", font=("Arial", 10, "bold"))
         exit_btn.pack(side=tk.LEFT, padx=5, pady=5, expand=True, fill=tk.X)
         
         # Add descriptive text below buttons
@@ -3046,6 +3475,55 @@ Select the time period on this tab and press the Run Analysis button to execute 
         for var in self.output_controls.values():
             var.set(False)
 
+    def create_instructions_tab(self):
+        """Create the Instructions tab displaying README.md content"""
+        instructions_frame = ttk.Frame(self.notebook)
+        self.notebook.add(instructions_frame, text="Instructions")
+        
+        # Create a frame with scrollbar
+        main_frame = ttk.Frame(instructions_frame)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Create scrollbar
+        scrollbar = ttk.Scrollbar(main_frame)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Create text widget with scrollbar
+        text_widget = tk.Text(main_frame, wrap=tk.WORD, yscrollcommand=scrollbar.set,
+                             font=("Consolas", 10), bg="white", fg="black",
+                             padx=10, pady=10)
+        text_widget.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Configure scrollbar
+        scrollbar.config(command=text_widget.yview)
+        
+        # Read README.md file
+        try:
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            readme_path = os.path.join(script_dir, "README.md")
+            
+            if os.path.exists(readme_path):
+                with open(readme_path, 'r', encoding='utf-8') as f:
+                    readme_content = f.read()
+                
+                # Insert content into text widget
+                text_widget.insert(tk.END, readme_content)
+                
+                # Make text widget read-only
+                text_widget.config(state=tk.DISABLED)
+            else:
+                # If README.md doesn't exist, show a message
+                error_msg = f"README.md file not found at:\n{readme_path}\n\nPlease ensure README.md is in the same directory as SFD_GUI.py"
+                text_widget.insert(tk.END, error_msg)
+                text_widget.config(state=tk.DISABLED)
+                logger.warning(f"README.md not found at {readme_path}")
+        except Exception as e:
+            error_msg = f"Error reading README.md file:\n{str(e)}\n\nCheck the log file for more details."
+            text_widget.insert(tk.END, error_msg)
+            text_widget.config(state=tk.DISABLED)
+            logger.error(f"Error reading README.md: {str(e)}")
+            logger.error(traceback.format_exc())
+
     def browse_data_directory(self):
         """Open file dialog to select data directory"""
         directory = filedialog.askdirectory()
@@ -3595,7 +4073,7 @@ Select the time period on this tab and press the Run Analysis button to execute 
         
         # Handle year ranges (e.g. "2023-2024")
         if '-' in str(year):
-            # For a range, use the first year (the download_noaa_files method will handle multiple years)
+            # For a range, use the first year (DataManager.download_noaa_data will handle multiple years)
             # This is just for getting the base URL
             try:
                 start_year = year.split('-')[0].strip()
@@ -3614,29 +4092,6 @@ Select the time period on this tab and press the Run Analysis button to execute 
                 messagebox.showerror("Error", f"Invalid year: {year}. Please enter a valid year.")
                 return None
     
-    def download_noaa_files(self, start_date, end_date, progress_callback=None):
-        """DEPRECATED: Replaced by DataManager.download_noaa_data"""
-        if progress_callback:
-            progress_callback("Using deprecated download_noaa_files method, switching to DataManager")
-        
-        # Create a data manager and use it instead
-        data_manager = DataManager(logger, progress_callback)
-        success, parquet_dir = data_manager.download_noaa_data(start_date, end_date)
-        
-        if success:
-            return parquet_dir
-        else:
-            return None
-    
-    def process_noaa_zip(self, zip_path, output_dir, progress_callback=None):
-        """DEPRECATED: Replaced by DataManager._process_zip_file"""
-        if progress_callback:
-            progress_callback("Using deprecated process_noaa_zip method, switching to DataManager")
-        
-        # Create a data manager and use its method instead
-        data_manager = DataManager(logger, progress_callback)
-        return data_manager._process_zip_file(zip_path, output_dir)
-            
     def toggle_s3_settings(self):
         """Enable/disable S3 settings based on use_s3 checkbox"""
         if not aws_available:
@@ -4659,6 +5114,10 @@ Select the time period on this tab and press the Run Analysis button to execute 
             start_date = self.start_date.get()
             end_date = self.end_date.get()
             
+            # Create and show download progress window
+            download_progress = DownloadProgressWindow(self.root)
+            download_progress.update()
+            
             # Add a section separator for better visual organization in the log
             progress_window.add_message("\n===== DOWNLOADING NOAA AIS DATA =====\n")
             progress_window.add_message(f"Downloading AIS data for date range: {start_date} to {end_date}")
@@ -4667,35 +5126,75 @@ Select the time period on this tab and press the Run Analysis button to execute 
             progress_window.add_message("-------------------------------------------")
             
             # Use the new DataManager to handle downloads
-            try:
-                # Create a data manager instance with the progress window's add_message method as callback
-                data_manager = DataManager(logger, progress_window.add_message)
-                
-                # Download NOAA data - this extracts the year from the start date internally
-                success, parquet_dir = data_manager.download_noaa_data(start_date, end_date)
-                
-                if not success or not parquet_dir:
-                    progress_window.add_message("\n❌ ERROR: Failed to process NOAA AIS data. Analysis cannot continue.")
-                    return  # Exit without starting analysis
+            # Run download in a separate thread to avoid blocking GUI
+            download_complete = threading.Event()
+            download_result = {"success": False, "parquet_dir": None, "error": None, "data_manager": None}
+            
+            def download_thread():
+                """Run download in background thread"""
+                try:
+                    # Create a callback that updates both windows
+                    def progress_callback(message):
+                        progress_window.add_message(message)
+                        download_progress.add_message(message)
                     
-                progress_window.add_message("\n✅ NOAA AIS data download and processing complete!")
-                progress_window.add_message(f"Files are ready at: {parquet_dir}")
-                progress_window.add_message("\n===== STARTING ANALYSIS =====\n")
-                
-                # Update data directory to point to the temporary parquet directory
-                self.data_directory.set(parquet_dir)
-                
-                # Add the data directory to the command
-                cmd.extend(["--data-directory", parquet_dir])
-                
-                # Mark for preservation after process completes
-                progress_window.noaa_temp_dir = data_manager.base_temp_dir
-                
-            except Exception as e:
-                error_msg = f"Error downloading NOAA data: {str(e)}"
+                    # Create a data manager instance with the combined callback
+                    data_manager = DataManager(logger, progress_callback)
+                    download_result["data_manager"] = data_manager
+                    
+                    # Download NOAA data - this extracts the year from the start date internally
+                    success, parquet_dir = data_manager.download_noaa_data(start_date, end_date)
+                    
+                    download_result["success"] = success
+                    download_result["parquet_dir"] = parquet_dir
+                    
+                except Exception as e:
+                    download_result["error"] = str(e)
+                finally:
+                    download_complete.set()
+            
+            # Start download in background thread
+            download_thread_obj = threading.Thread(target=download_thread, daemon=True)
+            download_thread_obj.start()
+            
+            # Process GUI events while waiting for download to complete
+            while not download_complete.is_set():
+                self.root.update_idletasks()
+                self.root.update()
+                download_complete.wait(timeout=0.1)  # Check every 100ms
+            
+            # Wait for thread to finish
+            download_thread_obj.join(timeout=1)
+            
+            # Check results
+            if download_result["error"]:
+                error_msg = f"Error downloading NOAA data: {download_result['error']}"
                 logger.error(error_msg)
-                progress_window.add_message(f"\n❌ ERROR: {error_msg}")
+                progress_window.add_message(f"\nERROR: {error_msg}")
+                download_progress.close()
                 return  # Exit without starting analysis
+            
+            if not download_result["success"] or not download_result["parquet_dir"]:
+                progress_window.add_message("\nERROR: Failed to process NOAA AIS data. Analysis cannot continue.")
+                download_progress.close()
+                return  # Exit without starting analysis
+            
+            # Close download progress window when complete
+            download_progress.close()
+            
+            progress_window.add_message("\nNOAA AIS data download and processing complete!")
+            progress_window.add_message(f"Files are ready at: {download_result['parquet_dir']}")
+            progress_window.add_message("\n===== STARTING ANALYSIS =====\n")
+            
+            # Update data directory to point to the temporary parquet directory
+            self.data_directory.set(download_result["parquet_dir"])
+            
+            # Add the data directory to the command
+            cmd.extend(["--data-directory", download_result["parquet_dir"]])
+            
+            # Mark for preservation after process completes
+            if download_result["data_manager"]:
+                progress_window.noaa_temp_dir = download_result["data_manager"].base_temp_dir
             
             logger.info(f"Using NOAA data source: {noaa_url}")
         elif data_source == "local":
@@ -4761,7 +5260,7 @@ Select the time period on this tab and press the Run Analysis button to execute 
                                     # Check if this is a significant message we want to highlight
                                     if "download" in line_str.lower() or "convert" in line_str.lower() or "extract" in line_str.lower():
                                         # Add a special prefix for download/conversion messages
-                                        stdout_queue.put(f"📦 {line_str}")
+                                        stdout_queue.put(f"[PROCESSING] {line_str}")
                                     elif any(pattern in line_str for pattern in ["Processing", "Starting", "Completed", "Loading", "Analyzing"]):
                                         # Highlight other important process messages
                                         stdout_queue.put(f">> {line_str}")
@@ -4817,7 +5316,7 @@ Select the time period on this tab and press the Run Analysis button to execute 
                                         stderr_queue.put(f"WARNING: {line_str}")
                                     elif "download" in line_str.lower() or "convert" in line_str.lower() or "extract" in line_str.lower():
                                         # Add a special prefix for download/conversion messages
-                                        stderr_queue.put(f"📦 {line_str}")
+                                        stderr_queue.put(f"[PROCESSING] {line_str}")
                                     elif any(pattern in line_str for pattern in ["Processing", "Starting", "Completed", "Loading", "Analyzing"]):
                                         # Highlight other processing messages
                                         stderr_queue.put(f">> {line_str}")
@@ -5031,7 +5530,7 @@ Select the time period on this tab and press the Run Analysis button to execute 
                 if return_code == 0:
                     # Add section separator and success message
                     progress_window.add_message("\n===== ANALYSIS COMPLETED SUCCESSFULLY =====\n")
-                    progress_window.add_message("✅ The AIS data analysis has completed successfully!")
+                    progress_window.add_message("The AIS data analysis has completed successfully!")
                     logger.info("Analysis completed with return code 0 - showing completion options")
                     progress_window.add_message(f"\nResults have been saved to: {self.output_directory.get()}")
                     progress_window.add_message("\nYou can review the results and choose further actions from the options below.")
@@ -5079,7 +5578,7 @@ Select the time period on this tab and press the Run Analysis button to execute 
                 else:
                     # Add section separator and error message
                     progress_window.add_message("\n===== ANALYSIS FAILED =====\n")
-                    progress_window.add_message(f"❌ Analysis failed with return code {return_code}")
+                    progress_window.add_message(f"Analysis failed with return code {return_code}")
                     
                     # If there's an error, show the error output
                     try:

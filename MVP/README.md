@@ -1,28 +1,39 @@
 # AIS Shipping Fraud Detection System
 
-**Version:** 1.2 Beta  
-**Team:** Dreadnaught  
-**Author:** Chris Matherne  
-**Event:** Datathon 2025
+
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Quick Start](#quick-start)
+4. [Using SFD_GUI.py (Graphical Interface)](#using-sfd_guipy-graphical-interface)
+5. [Using Advanced Analysis Tools](#using-advanced-analysis-tools)
+6. [Command-Line Interface (SFD.py)](#command-line-interface-sfdpy)
+7. [Configuration File (config.ini)](#configuration-file-configini)
+8. [Anomaly Types Explained](#anomaly-types-explained)
+9. [Output Files](#output-files)
+10. [Troubleshooting](#troubleshooting)
+
+---
 
 ## Overview
 
 The AIS Shipping Fraud Detection System analyzes Automatic Identification System (AIS) data to detect potentially fraudulent shipping activities. It identifies anomalies such as vessels turning off their AIS beacons (sudden disappearances), sudden reappearances, unusual travel distances, and large inconsistencies between reported Course Over Ground (COG) and Heading.
 
-**Note:** In this test implementation, only data from October 2024 to March 2025 is available for use.
+### Key Features
 
----
+- **Interactive GUI**: User-friendly graphical interface for configuring and running analyses
+- **Advanced Analysis Tools**: Post-analysis tools for deeper investigation of results
+- **Multiple Anomaly Detection**: 8 different types of maritime anomalies
+- **Flexible Data Sources**: Support for local files, NOAA downloads, and AWS S3
+- **GPU Acceleration**: Optional GPU support for faster processing
+- **Comprehensive Visualizations**: Interactive maps, charts, and reports
+- **Data Caching**: Automatic caching system for faster subsequent analyses
 
-## Table of Contents
+### Data Availability
 
-1. [Installation](#installation)
-2. [Graphical User Interface (SFD_GUI.py)](#graphical-user-interface-sfd_guipy)
-3. [Command-Line Interface (SFD.py)](#command-line-interface-sfdpy)
-4. [Configuration File (config.ini)](#configuration-file-configini)
-5. [Graphics and Icon Files](#graphics-and-icon-files)
-6. [Anomaly Types Explained](#anomaly-types-explained)
-7. [Output Files](#output-files)
-8. [Troubleshooting](#troubleshooting)
+**Note:** In this test implementation, only data from October 2024 to March 2025 is available for use when using AWS.
 
 ---
 
@@ -32,6 +43,7 @@ The AIS Shipping Fraud Detection System analyzes Automatic Identification System
 
 - Python 3.8 or higher (Python 3.14 fully supported)
 - Windows, Linux, or macOS
+- Internet connection (for NOAA data downloads)
 
 ### Step 1: Install Dependencies
 
@@ -48,16 +60,24 @@ sudo apt-get install python3-tk
 
 ### Step 2: Required Files
 
-Ensure the following files are in the same directory as the scripts:
+Ensure the following files are in the same directory:
 
 - **SFD_GUI.py** - Main graphical user interface
 - **SFD.py** - Command-line analysis engine
+- **advanced_analysis.py** - Advanced analysis tools module
 - **config.ini** - Configuration file (created automatically if missing)
-- **SFD_AI_banner.png** - Banner image for GUI (optional)
-- **SFDLoad.png** - Loading screen image (optional)
-- **SFD.ico** - Application icon (optional)
 
-### Step 3: GPU Support (Optional)
+### Step 3: Optional Graphics Files
+
+The following graphics files are optional but enhance the GUI appearance:
+
+- **SFD_AI_banner.png** - Banner image for GUI
+- **SFDLoad.png** - Loading screen image
+- **SFD.ico** - Application icon (Windows only)
+
+If these files are missing, the application will display text labels instead.
+
+### Step 4: GPU Support (Optional)
 
 For GPU acceleration:
 
@@ -66,44 +86,58 @@ For GPU acceleration:
 - Packages will be installed via requirements.txt (cudf, cupy, cuml)
 
 **AMD GPUs:**
-- Install AMD HIP SDK from: https://www.amd.com/en/developer/resources/rocm-hub/hip-sdk.html
+- Install AMD HIP SDK
 - Install cupy-rocm: `pip install cupy-rocm`
 - Or install PyHIP: `pip install pyhip`
 
 ---
 
-## Graphical User Interface (SFD_GUI.py)
+## Quick Start
 
-The GUI provides an intuitive interface for configuring and running analyses. Launch it with:
+1. **Launch the GUI:**
+   ```bash
+   python SFD_GUI.py
+   ```
 
-```bash
-python SFD_GUI.py
-```
+2. **Set your date range** on the Startup tab (e.g., 2024-10-21 to 2024-10-23)
 
-### GUI Tabs Overview
+3. **Configure your analysis:**
+   - Select ship types on the Ship Types tab
+   - Choose anomaly types on the Anomaly Types tab
+   - Set data and output directories on the Data tab
 
-The GUI consists of 7 main tabs:
+4. **Run the analysis:**
+   - Click the green "Run Analysis" button on the Startup tab
+   - Wait for the analysis to complete
 
-1. **Startup** - Date selection and main controls
-2. **Ship Types** - Select vessel types to analyze
-3. **Anomaly Types** - Choose anomaly types and set thresholds
-4. **Analysis Filters** - Geographic, time, and vessel filters
-5. **Data** - Data source and processing options
-6. **Zone Violations** - Manage restricted zones
-7. **Output Controls** - Configure report outputs
+5. **View results:**
+   - Results are saved to your output directory
+   - After analysis completes, you can access Advanced Analysis tools
 
 ---
+
+## Using SFD_GUI.py (Graphical Interface)
+
+The GUI provides an intuitive interface for configuring and running analyses. It consists of 7 main tabs:
 
 ### Tab 1: Startup
 
 **Purpose:** Set the analysis date range and execute the analysis.
 
-#### Controls:
+#### Date Range Selection
+
+- **Start Date** - Beginning of analysis period (format: YYYY-MM-DD)
+- **End Date** - End of analysis period (format: YYYY-MM-DD)
+
+If `tkcalendar` is installed, you'll see calendar widgets. Otherwise, use text entry fields.
+
+#### Main Buttons
 
 - **Run Analysis** (Green Button)
   - Executes the analysis with current settings
-  - Shows progress in a popup window
+  - Shows progress in a popup window with download/extraction/conversion status
   - Results are saved to the output directory
+  - After completion, you'll be asked if you want to conduct additional analysis
 
 - **Save Configuration**
   - Saves all current settings to `config.ini`
@@ -115,15 +149,9 @@ The GUI consists of 7 main tabs:
 
 - **Exit** (Red Button)
   - Closes the application
+  - Prompts to delete temporary files if they exist
 
-#### Date Range Selection:
-
-- **Start Date** - Beginning of analysis period (format: YYYY-MM-DD)
-- **End Date** - End of analysis period (format: YYYY-MM-DD)
-
-**Note:** If `tkcalendar` is installed, you'll see calendar widgets. Otherwise, use text entry fields.
-
-#### Description:
+#### Description
 
 The tab includes a description explaining the system's purpose and available data range.
 
@@ -133,24 +161,20 @@ The tab includes a description explaining the system's purpose and available dat
 
 **Purpose:** Select which vessel types to include in the analysis.
 
-#### Controls:
+#### Controls
 
-- **Category Buttons:**
-  - **Select All** - Selects all ship types
-  - **Deselect All** - Deselects all ship types
-  - Category-specific buttons (Cargo, Tanker, etc.) - Select/deselect by category
+- **Select All** - Selects all ship types
+- **Deselect All** - Deselects all ship types
+- **Category Buttons** - Select/deselect by category:
+  - **WIG** (Wing in ground) - Types 20-29
+  - **HSC** (High speed craft) - Types 40-49
+  - **Special Purpose** - Types 50-59
+  - **Passenger** - Types 60-69
+  - **Cargo** - Types 70-79
+  - **Tanker** - Types 80-89
+  - **Other** - Types 90-99
 
-#### Ship Type Categories:
-
-- **WIG** (Wing in ground) - Types 20-29
-- **HSC** (High speed craft) - Types 40-49
-- **Special Purpose** - Types 50-59
-- **Passenger** - Types 60-69
-- **Cargo** - Types 70-79
-- **Tanker** - Types 80-89
-- **Other** - Types 90-99
-
-Each ship type has a checkbox with its numeric code and description. Check the types you want to analyze.
+Each ship type has a checkbox with its numeric code and description.
 
 **Default:** All ship types are selected.
 
@@ -166,9 +190,9 @@ Checkboxes for each anomaly type:
 
 - **AIS Beacon Off** - Detects when vessels turn off their AIS transponders
 - **AIS Beacon On** - Detects when vessels suddenly reappear after being off
-- **Speed Anomaly (Fast)** - Detects excessive travel distances (position jumps)
-- **Speed Anomaly (Slow)** - Detects unusually slow travel (not currently implemented)
-- **Course vs. Heading Inconsistency** - Detects large differences between COG and Heading
+- **Excessive Travel Distance (Fast)** - Detects excessive travel distances (position jumps)
+- **Excessive Travel Distance (Slow)** - Detects unusually slow travel
+- **Course over Ground-Heading Inconsistency** - Detects large differences between COG and Heading
 - **Loitering** - Detects vessels staying in a small area for extended periods
 - **Rendezvous** - Detects two vessels meeting in close proximity
 - **Identity Spoofing** - Detects multiple vessels using the same MMSI
@@ -185,10 +209,11 @@ Checkboxes for each anomaly type:
 - **Maximum** - Above this distance is considered "Fast" (default: 550.0 nm)
 
 **COG-Heading Inconsistency Thresholds:**
-- **Maximum difference (degrees)** - Maximum allowed difference between COG and Heading (default: 45.0°)
+- **Maximum difference (degrees)** - Maximum allowed difference between COG and Heading (default: 45.0 degrees)
 - **Minimum speed for check (knots)** - Only check COG/Heading when vessel speed exceeds this (default: 10.0 knots)
 
-**Note:** Other thresholds (loitering radius, rendezvous proximity, etc.) are configured in `config.ini`.
+**AIS Beacon Threshold:**
+- **Beacon time threshold (hours)** - Hours before beacon off/on is flagged (default: 6.0 hours)
 
 ---
 
@@ -205,12 +230,6 @@ Checkboxes for each anomaly type:
 - **Longitude Range:**
   - **Min:** Minimum longitude (-180.0 to 180.0)
   - **Max:** Maximum longitude (-180.0 to 180.0)
-
-- **Draw Box on Map** Button:
-  - Opens an interactive map in your browser
-  - Draw a rectangle to set geographic bounds
-  - Coordinates are automatically copied to clipboard
-  - Paste into the Min/Max fields
 
 **Default:** Full world coverage (-90 to 90 lat, -180 to 180 lon)
 
@@ -263,7 +282,16 @@ Resets all filter values to defaults.
 Radio buttons to choose data source:
 
 - **Use Local Data Folder** - Read from local directory
+- **Download from NOAA** - Automatically download AIS data from NOAA
 - **Use AWS S3 Data Bucket** - Read from Amazon S3 (requires AWS credentials)
+
+#### NOAA Data Download
+
+When "Download from NOAA" is selected:
+- System automatically downloads data for the specified date range
+- Data is cached for future use
+- Progress is shown in a download progress window
+- Temporary files are stored in `AISDataTemp` directory
 
 #### Amazon S3 Settings
 
@@ -295,22 +323,19 @@ Radio buttons to choose data source:
   - Shows GPU status (NVIDIA/AMD/None)
   - Provides "Install GPU Support" button if needed
 
-**Note:** GPU support requires appropriate drivers and libraries (see Installation section).
-
 ---
 
 ### Tab 6: Zone Violations
 
 **Purpose:** Manage restricted zones for zone violation detection.
 
-#### Controls:
+#### Controls
 
 - **Add Zone** Button:
   - Opens dialog to create a new restricted zone
-  - Enter zone name and coordinates
-  - Option to draw zone on map
+  - Supports both manual coordinate entry and drawing on an interactive map
 
-#### Zone List:
+#### Zone List
 
 Each zone displays:
 - **Checkbox:** "Selected" - Include this zone in analysis
@@ -318,24 +343,6 @@ Each zone displays:
 - **Coordinates:** Latitude and longitude bounds
 - **Edit Button:** Modify zone settings
 - **Delete Button:** Remove zone (in edit dialog)
-
-#### Zone Dialog:
-
-When adding/editing a zone:
-
-- **Zone Name:** Descriptive name (e.g., "Strait of Hormuz")
-- **Latitude Range:**
-  - **Min:** Minimum latitude
-  - **Max:** Maximum latitude
-- **Longitude Range:**
-  - **Min:** Minimum longitude
-  - **Max:** Maximum longitude
-- **Draw Map** Button:
-  - Opens interactive map to draw zone boundaries
-  - Coordinates are copied to clipboard
-- **Enter Zone Coordinates from Map** Button:
-  - Opens map to manually enter coordinates
-  - Right-click to paste coordinates
 
 **Buttons:**
 - **Select All** - Selects all zones
@@ -345,11 +352,161 @@ When adding/editing a zone:
 
 ---
 
+#### Creating a New Zone
+
+You can create zones using two methods: **Manual Input** or **Draw on Map**. Both methods are accessed through the "Add Zone" button.
+
+##### Method 1: Manual Input
+
+**Step-by-Step Instructions:**
+
+1. **Click "Add Zone" Button:**
+   - Located on the Zone Violations tab
+   - Opens the "Add Zone" dialog window
+
+2. **Enter Zone Name:**
+   - Type a descriptive name for the zone (e.g., "Strait of Hormuz", "Gulf of Mexico", "Mediterranean Sea")
+   - Zone names must be unique
+
+3. **Enter Coordinates Manually:**
+   - **Latitude Min:** Enter the southernmost latitude (-90.0 to 90.0)
+   - **Latitude Max:** Enter the northernmost latitude (must be greater than Min)
+   - **Longitude Min:** Enter the westernmost longitude (-180.0 to 180.0)
+   - **Longitude Max:** Enter the easternmost longitude (must be greater than Min)
+   
+   **Example:**
+   - Strait of Hormuz:
+     - Latitude Min: 25.0
+     - Latitude Max: 27.0
+     - Longitude Min: 55.0
+     - Longitude Max: 57.5
+
+4. **Set Zone Status:**
+   - Check "Selected (use in analysis)" if you want this zone included in analysis
+   - Uncheck to save the zone but exclude it from current analysis
+
+5. **Save the Zone:**
+   - Click "Save" button
+   - The zone will be added to the zone list
+   - Zone is automatically saved to `config.ini`
+
+**Validation:**
+- Zone name is required
+- All coordinates must be valid numbers
+- Latitude Min must be less than Latitude Max
+- Longitude Min must be less than Longitude Max
+- Zone names must be unique
+
+---
+
+##### Method 2: Draw on Map
+
+**Step-by-Step Instructions:**
+
+1. **Click "Add Zone" Button:**
+   - Opens the "Add Zone" dialog window
+
+2. **Enter Zone Name:**
+   - Type a descriptive name for the zone
+   - You can enter coordinates later
+
+3. **Click "Draw Zone on Map" Button:**
+   - A map will open in your default web browser
+   - The map shows the world with drawing tools enabled
+
+4. **Draw the Zone on the Map:**
+   - **Locate the Drawing Toolbar:** Look for the drawing toolbar in the top-left corner of the map
+   - **Select Rectangle Tool:** Click the rectangle icon in the toolbar
+   - **Draw the Rectangle:**
+     - Click and hold at one corner of the area you want to define
+     - Drag to the opposite corner
+     - Release to complete the rectangle
+   - **View Coordinates:** After drawing, coordinates will appear in a box at the bottom-left of the map
+
+5. **Copy Coordinates:**
+   - Click the "Copy Coordinates" button in the coordinate display box
+   - The coordinates will be copied to your clipboard in the format: `lat_min,lat_max,lon_min,lon_max`
+   - The browser window may close automatically after copying
+
+6. **Enter Coordinates in Dialog:**
+   - A coordinate entry dialog will appear in the application
+   - **Option A - Paste Coordinates:**
+     - Paste the copied coordinates into the "Paste Coordinates" field
+     - Click "Apply Coordinates" to populate all fields automatically
+   - **Option B - Manual Entry:**
+     - Manually enter the coordinates shown on the map into the individual fields:
+       - Latitude Min
+       - Latitude Max
+       - Longitude Min
+       - Longitude Max
+
+7. **Set Zone Status:**
+   - Check "Selected (use in analysis)" if you want this zone included in analysis
+
+8. **Save the Zone:**
+   - Click "Save" button in the main zone dialog
+   - The zone will be added to the zone list
+   - Zone is automatically saved to `config.ini`
+
+**Tips for Drawing Zones:**
+- Use the map zoom controls to get a closer view of the area
+- You can pan the map by clicking and dragging
+- The rectangle tool only allows rectangular zones (not polygons or circles)
+- For irregular shapes, draw the smallest rectangle that encompasses the area
+- Coordinates are displayed with 6 decimal places for precision
+
+---
+
+#### Editing an Existing Zone
+
+**Step-by-Step Instructions:**
+
+1. **Locate the Zone:**
+   - Find the zone in the zone list on the Zone Violations tab
+
+2. **Click "Edit" Button:**
+   - Opens the "Edit Zone" dialog with current zone settings
+
+3. **Modify Zone Settings:**
+   - Change the zone name, coordinates, or selection status
+   - You can use either manual input or "Draw Zone on Map" to update coordinates
+
+4. **Save Changes:**
+   - Click "Save" to update the zone
+   - Changes are automatically saved to `config.ini`
+
+5. **Delete Zone (Optional):**
+   - While editing, click "Delete" button
+   - Confirm deletion in the dialog
+   - Zone will be removed from the list and `config.ini`
+
+---
+
+#### Zone Coordinate Format
+
+Zones are defined as rectangular areas using:
+- **Latitude Range:** From Min (south) to Max (north)
+- **Longitude Range:** From Min (west) to Max (east)
+
+**Coordinate Ranges:**
+- Latitude: -90.0 (South Pole) to 90.0 (North Pole)
+- Longitude: -180.0 to 180.0 (International Date Line)
+
+**Example Zones:**
+- **Strait of Hormuz:**
+  - Lat: 25.0 to 27.0, Lon: 55.0 to 57.5
+- **Gulf of Mexico:**
+  - Lat: 18.0 to 30.0, Lon: -98.0 to -80.0
+- **Mediterranean Sea:**
+  - Lat: 30.0 to 46.0, Lon: -6.0 to 36.0
+
+---
+
 ### Tab 7: Output Controls
 
 **Purpose:** Configure what reports and visualizations are generated.
 
-#### Report Outputs:
+#### Report Outputs
 
 **Reports:**
 - **Generate Statistics Excel** - Creates Excel file with statistics
@@ -373,6 +530,294 @@ When adding/editing a zone:
 **Buttons:**
 - **Select All** - Enables all outputs
 - **Deselect All** - Disables all outputs
+
+---
+
+## Using Advanced Analysis Tools
+
+After completing an initial analysis, you can access Advanced Analysis tools to perform deeper investigations on your dataset. The Advanced Analysis interface is accessible from the results window after analysis completion, or can be launched directly.
+
+### Accessing Advanced Analysis
+
+**From Results Window:**
+- After analysis completes, a dialog asks if you want to conduct additional analysis
+- Click "Yes" to open the Advanced Analysis interface
+
+**From Main GUI:**
+- The Advanced Analysis tools are automatically available after your first analysis
+
+### Advanced Analysis Interface Overview
+
+The Advanced Analysis interface consists of 4 main tabs:
+
+1. **Additional Outputs** - Generate additional reports and exports
+2. **Further Analysis** - Perform statistical and pattern analysis
+3. **Mapping Tools** - Create advanced map visualizations
+4. **Vessel-Specific Analysis** - Analyze individual vessels in detail
+
+---
+
+### Tab 1: Additional Outputs
+
+This tab provides tools to generate additional reports and data exports from your analysis results.
+
+#### Export Full Dataset to CSV
+
+**Purpose:** Export the complete analysis dataset to CSV format.
+
+**How to Use:**
+1. Click the "Export Full Dataset to CSV" button
+2. A file dialog will appear to choose the save location
+3. The export process will show progress
+4. Large datasets are exported in chunks to handle memory efficiently
+
+**Output:** A CSV file containing all data from the analysis.
+
+#### Generate Summary Report
+
+**Purpose:** Create a comprehensive summary report with key findings and statistics.
+
+**How to Use:**
+1. Click the "Generate Summary Report" button
+2. The system will analyze the dataset and generate a report
+3. Progress is shown in a dialog window
+4. The report is saved as an HTML file
+
+**Output:** An HTML report file with:
+- Total anomalies detected
+- Anomaly type breakdown
+- Top vessels with anomalies
+- Geographic distribution
+- Temporal patterns
+
+#### Export Vessel Statistics
+
+**Purpose:** Export vessel-specific statistics to Excel format.
+
+**How to Use:**
+1. Click the "Export Vessel Statistics" button
+2. The system will process all vessels in the dataset
+3. Statistics are compiled and exported
+4. Progress is shown during processing
+
+**Output:** An Excel file (or CSV if openpyxl is not available) containing:
+- Vessel MMSI and names
+- Total anomalies per vessel
+- Anomaly type breakdown per vessel
+- Average speeds and distances
+- Time ranges
+
+#### Generate Anomaly Timeline
+
+**Purpose:** Create a timeline visualization of anomalies.
+
+**How to Use:**
+1. Click the "Generate Anomaly Timeline" button
+2. The system will create an interactive timeline
+3. Progress is shown during generation
+
+**Output:** An HTML file with an interactive timeline showing:
+- Anomalies over time
+- Anomaly types by time period
+- Vessel activity patterns
+
+---
+
+### Tab 2: Further Analysis
+
+This tab provides advanced statistical and pattern analysis tools.
+
+#### Anomaly Correlation Analysis
+
+**Purpose:** Analyze correlations between vessel types and anomaly types.
+
+**How to Use:**
+1. Click the "Anomaly Correlation Analysis" button
+2. A dialog will open with selection options:
+   - **Vessel Types:** Select up to 2 vessel types (only types present in your data are available)
+   - **Anomaly Types:** Select up to 2 anomaly types (only types detected in your analysis are available)
+3. Click "Analyze" to generate the correlation analysis
+4. Results are displayed in an interactive HTML chart
+
+**Output:** An HTML file with correlation visualizations showing relationships between selected vessel and anomaly types.
+
+**Note:** Options are automatically filtered to only show vessel types and anomaly types that exist in your dataset.
+
+#### Temporal Pattern Analysis
+
+**Purpose:** Analyze patterns over time, including hourly and daily distributions.
+
+**How to Use:**
+1. Click the "Temporal Pattern Analysis" button
+2. The system will analyze temporal patterns in your data
+3. Progress is shown during analysis
+
+**Output:** An HTML file with interactive charts showing:
+- Anomalies by hour of day
+- Anomalies by day of week
+- Trends over time
+- Peak activity periods
+
+#### Vessel Behavior Clustering
+
+**Purpose:** Apply clustering algorithms to identify similar vessel behaviors.
+
+**How to Use:**
+1. Click the "Vessel Behavior Clustering" button
+2. A dialog will open:
+   - **Vessel Types:** Select vessel types to include (all types 20-99 are shown, with indicators for which are in your data)
+   - **Number of Clusters:** Enter the desired number of clusters (default: 5)
+3. Click "Perform Clustering" to run the analysis
+4. Results are displayed in an interactive visualization
+
+**Output:** An HTML file (or CSV if plotly is not available) showing:
+- Vessel clusters based on behavior patterns
+- Cluster characteristics
+- Vessel assignments to clusters
+
+**Note:** Requires scikit-learn to be installed. If not available, the feature will be disabled.
+
+#### Anomaly Frequency Analysis
+
+**Purpose:** Analyze frequency and distribution of different anomaly types.
+
+**How to Use:**
+1. Click the "Anomaly Frequency Analysis" button
+2. The system will analyze anomaly frequencies
+3. Progress is shown during analysis
+
+**Output:** An HTML file with charts showing:
+- Frequency of each anomaly type
+- Distribution patterns
+- Statistical summaries
+
+#### Create Custom Chart
+
+**Purpose:** Create custom charts with various types and data selections.
+
+**How to Use:**
+1. Click the "Create Custom Chart" button
+2. A dialog will open with options:
+   - **Chart Type:** Select from bar, scatter, line, pie, stacked_bar, timeline, histogram, or box
+   - **X Column:** Select the column for x-axis
+   - **Y Column:** Select the column for y-axis (if applicable)
+   - **Color Column:** Select column for color grouping (optional)
+   - **Group By:** Select column to group by (optional)
+   - **Aggregation:** Select aggregation function (count, sum, mean, max, min)
+   - **Title:** Enter chart title
+3. Click "Create Chart" to generate
+4. The chart is saved as an HTML file
+
+**Output:** An interactive HTML chart based on your specifications.
+
+**Available Chart Types:**
+- **Bar:** Bar chart for categorical data
+- **Scatter:** Scatter plot for relationships
+- **Line:** Line chart for trends
+- **Pie:** Pie chart for proportions
+- **Stacked Bar:** Stacked bar chart for comparisons
+- **Timeline:** Timeline visualization
+- **Histogram:** Distribution histogram
+- **Box:** Box plot for distributions
+
+---
+
+### Tab 3: Mapping Tools
+
+This tab provides advanced mapping and visualization tools.
+
+#### Full Spectrum Anomaly Map
+
+**Purpose:** Create a comprehensive map showing all anomalies with various visualization options.
+
+**How to Use:**
+1. Click the "Full Spectrum Anomaly Map" button
+2. A dialog will open with options:
+   - **Show Anomaly Pins:** Check to show individual anomaly markers
+   - **Show Heatmap Overlay:** Check to show heatmap visualization
+3. Click "Create Map" to generate
+4. The map opens in your default web browser
+
+**Output:** An interactive HTML map with:
+- All anomalies from your analysis
+- Optional pin markers for each anomaly
+- Optional heatmap overlay showing anomaly density
+- Clickable markers with anomaly details
+
+#### Vessel-Specific Maps
+
+**Purpose:** Create maps focused on specific vessels by MMSI.
+
+**How to Use:**
+1. Click the "Create Vessel Map" button
+2. A dialog will open:
+   - **MMSI:** Enter the vessel's MMSI number
+   - **Map Type:** Select from:
+     - **Path Map:** Shows vessel's path over time
+     - **Anomaly Map:** Shows anomalies for this vessel
+     - **Heatmap:** Shows heatmap of vessel activity
+3. Click "Create Map" to generate
+
+**Output:** An interactive HTML map showing the selected vessel's data.
+
+**Top Vessels List:**
+- Below the vessel map button, you'll see lists of top 10 vessels by anomaly type
+- Click "Copy" next to any MMSI to copy it to clipboard
+- Paste the MMSI into the vessel map dialog
+
+#### Filtered Maps
+
+**Purpose:** Create path/anomaly/heat-maps for specific anomaly types and/or vessel types.
+
+**How to Use:**
+1. Click the "Create Filtered Map" button
+2. A dialog will open:
+   - **Anomaly Types:** Select one or more anomaly types (only types from your analysis are available)
+   - **Vessel Types:** Select one or more vessel types (only types from your analysis are available)
+   - **Map Type:** Select Path Map, Anomaly Map, or Heatmap
+   - **Specific Vessel (Optional):** Enter MMSI to filter to a specific vessel
+3. Click "Create Map" to generate
+
+**Output:** An interactive HTML map filtered by your selections.
+
+**Note:** Only anomaly types and vessel types that were included in your original analysis are available for selection.
+
+---
+
+### Tab 4: Vessel-Specific Analysis
+
+This tab provides tools for detailed analysis of individual vessels.
+
+#### Extended Time Range Analysis
+
+**Purpose:** Analyze additional days of data for a specific vessel beyond the current date range.
+
+**How to Use:**
+1. Enter the vessel's **MMSI** number
+2. Select **Additional Days** using the calendar pickers:
+   - **Start Date:** Beginning of extended analysis period
+   - **End Date:** End of extended analysis period
+3. Click "Analyze" to run the extended analysis
+4. Progress is shown during analysis
+
+**Output:** Analysis results for the extended time period, including:
+- Additional anomalies detected
+- Extended path visualization
+- Updated statistics
+
+**Note:** The extended analysis uses cached data if available, or downloads additional data if needed.
+
+#### AI Predicted Path (Placeholder)
+
+**Purpose:** Use AI to predict the next 48-hour path for a specific vessel.
+
+**Status:** This feature is currently a placeholder for future development.
+
+**How to Use:**
+1. Enter the vessel's **MMSI** number
+2. Click "Predict Path" (when implemented)
+
+**Output:** (To be implemented) Predicted vessel path visualization.
 
 ---
 
@@ -436,6 +881,25 @@ python SFD.py --start-date 2024-10-15 --end-date 2024-10-20
 - **--bucket** `name` - S3 bucket name
 - **--prefix** `path` - S3 object prefix
 
+**Advanced Analysis:**
+- **--advanced-analysis** `feature` - Run advanced analysis feature:
+  - `export-full-dataset` - Export full dataset to CSV
+  - `summary-report` - Generate summary report
+  - `vessel-statistics` - Export vessel statistics
+  - `anomaly-timeline` - Generate anomaly timeline
+  - `temporal-patterns` - Temporal pattern analysis
+  - `vessel-clustering` - Vessel behavior clustering
+  - `anomaly-frequency` - Anomaly frequency analysis
+  - `full-spectrum-map` - Create full spectrum map
+  - `vessel-map` - Create vessel-specific map
+- **--vessel-mmsi** `int` - MMSI for vessel-specific analysis
+- **--map-type** `type` - Map type (path, anomaly, heatmap)
+- **--no-show-pins** - Hide pins on full spectrum map
+- **--no-show-heatmap** - Hide heatmap on full spectrum map
+- **--extended-start-date** `YYYY-MM-DD` - Start date for extended analysis
+- **--extended-end-date** `YYYY-MM-DD` - End date for extended analysis
+- **--n-clusters** `int` - Number of clusters for clustering (default: 5)
+
 ### Example Commands
 
 **Basic analysis:**
@@ -453,14 +917,14 @@ python SFD.py --start-date 2024-10-15 --end-date 2024-10-20 --ship-types "70,80"
 python SFD.py --start-date 2024-10-15 --end-date 2024-10-20 --min-latitude 25.0 --max-latitude 27.0 --min-longitude 55.0 --max-longitude 57.5
 ```
 
-**With S3 data source:**
+**Advanced analysis - generate summary report:**
 ```bash
-python SFD.py --start-date 2024-10-15 --end-date 2024-10-20 --access-key YOUR_KEY --secret-key YOUR_SECRET --bucket my-bucket --prefix data/
+python SFD.py --advanced-analysis summary-report
 ```
 
-**Debug mode:**
+**Advanced analysis - create vessel map:**
 ```bash
-python SFD.py --start-date 2024-10-15 --end-date 2024-10-20 --debug
+python SFD.py --advanced-analysis vessel-map --vessel-mmsi 366215000 --map-type path
 ```
 
 ---
@@ -489,14 +953,15 @@ min_speed_for_cog_check = 10.0
 beacon_time_threshold_hours = 6.0
 
 [ANOMALY_TYPES]
-ais_beacon_off = False
-ais_beacon_on = False
-excessive_travel_distance_fast = False
-cog-heading_inconsistency = False
+ais_beacon_off = True
+ais_beacon_on = True
+excessive_travel_distance_fast = True
+excessive_travel_distance_slow = True
+cog-heading_inconsistency = True
 loitering = False
 rendezvous = False
 identity_spoofing = False
-zone_violations = True
+zone_violations = False
 
 [ANALYSIS_FILTERS]
 min_latitude = -90.0
@@ -506,24 +971,24 @@ max_longitude = 180.0
 time_start_hour = 0
 time_end_hour = 24
 min_confidence = 75
-max_anomalies_per_vessel = 10
+max_anomalies_per_vessel = 10000
 filter_mmsi_list = 
 
 [OUTPUT_CONTROLS]
 generate_statistics_excel = True
-generate_statistics_csv = True
+generate_statistics_csv = False
 generate_overall_map = True
 generate_vessel_path_maps = False
-generate_charts = True
-generate_anomaly_type_chart = True
-generate_vessel_anomaly_chart = True
-generate_date_anomaly_chart = True
+generate_charts = False
+generate_anomaly_type_chart = False
+generate_vessel_anomaly_chart = False
+generate_date_anomaly_chart = False
 filter_to_anomaly_vessels_only = False
 show_lat_long_grid = False
 show_anomaly_heatmap = True
 
 [AWS]
-use_s3 = True
+use_s3 = False
 s3_data_uri = s3://bucket-name/prefix/
 s3_auth_method = keys
 s3_access_key = 
@@ -554,125 +1019,7 @@ zone_0_is_selected = False
 
 ### Section Descriptions
 
-#### [DEFAULT]
-- **data_directory** - Local data folder path
-- **output_directory** - Results output folder path
-- **start_date** - Default start date (YYYY-MM-DD)
-- **end_date** - Default end date (YYYY-MM-DD)
-
-#### [SHIP_FILTERS]
-- **selected_ship_types** - Comma-separated ship type codes
-
-#### [ANOMALY_THRESHOLDS]
-- **min_travel_nm** - Minimum travel distance (nautical miles)
-- **max_travel_nm** - Maximum travel distance (nautical miles)
-- **cog_heading_max_diff** - Max COG/Heading difference (degrees)
-- **min_speed_for_cog_check** - Minimum speed for COG check (knots)
-- **beacon_time_threshold_hours** - Hours before beacon off/on is flagged
-
-#### [ANOMALY_TYPES]
-- **ais_beacon_off** - Enable/disable (True/False)
-- **ais_beacon_on** - Enable/disable (True/False)
-- **excessive_travel_distance_fast** - Enable/disable (True/False)
-- **cog-heading_inconsistency** - Enable/disable (True/False)
-- **loitering** - Enable/disable (True/False)
-- **rendezvous** - Enable/disable (True/False)
-- **identity_spoofing** - Enable/disable (True/False)
-- **zone_violations** - Enable/disable (True/False)
-
-#### [ANALYSIS_FILTERS]
-- **min_latitude** - Minimum latitude (-90.0 to 90.0)
-- **max_latitude** - Maximum latitude (-90.0 to 90.0)
-- **min_longitude** - Minimum longitude (-180.0 to 180.0)
-- **max_longitude** - Maximum longitude (-180.0 to 180.0)
-- **time_start_hour** - Start hour (0-24)
-- **time_end_hour** - End hour (0-24)
-- **min_confidence** - Minimum confidence (0-100)
-- **max_anomalies_per_vessel** - Max anomalies per vessel
-- **filter_mmsi_list** - Comma-separated MMSI list (empty for all)
-
-#### [OUTPUT_CONTROLS]
-- **generate_statistics_excel** - Generate Excel report (True/False)
-- **generate_statistics_csv** - Generate CSV report (True/False)
-- **generate_overall_map** - Generate overall map (True/False)
-- **generate_vessel_path_maps** - Generate vessel maps (True/False)
-- **generate_charts** - Enable chart generation (True/False)
-- **generate_anomaly_type_chart** - Anomaly type chart (True/False)
-- **generate_vessel_anomaly_chart** - Vessel anomaly chart (True/False)
-- **generate_date_anomaly_chart** - Date anomaly chart (True/False)
-- **filter_to_anomaly_vessels_only** - Filter to anomalies only (True/False)
-- **show_lat_long_grid** - Show grid on maps (True/False)
-- **show_anomaly_heatmap** - Show heatmap on maps (True/False)
-
-#### [AWS]
-- **use_s3** - Use S3 data source (True/False)
-- **s3_data_uri** - Full S3 URI
-- **s3_auth_method** - Authentication method (keys)
-- **s3_access_key** - AWS access key ID
-- **s3_secret_key** - AWS secret access key
-- **s3_session_token** - AWS session token (if using temporary credentials)
-- **s3_bucket_name** - S3 bucket name
-- **s3_prefix** - S3 object prefix
-- **s3_local_dir** - Local cache directory
-- **s3_region** - AWS region
-
-#### [LOGGING]
-- **log_level** - Logging level (DEBUG, INFO, WARNING, ERROR)
-- **log_file** - Log file name
-- **suppress_warnings** - Suppress Python warnings (True/False)
-
-#### [Processing]
-- **use_gpu** - Enable GPU acceleration (True/False)
-- **use_dask** - Enable Dask processing (True/False)
-
-#### [ZONE_VIOLATIONS]
-- **zone_N_name** - Zone name (N = zone index)
-- **zone_N_lat_min** - Minimum latitude
-- **zone_N_lat_max** - Maximum latitude
-- **zone_N_lon_min** - Minimum longitude
-- **zone_N_lon_max** - Maximum longitude
-- **zone_N_is_selected** - Include in analysis (True/False)
-
----
-
-## Graphics and Icon Files
-
-The application uses the following graphics files (all optional):
-
-### Required for Full Functionality:
-
-- **SFD_AI_banner.png**
-  - **Location:** Same directory as SFD_GUI.py
-  - **Usage:** Banner image displayed at top of GUI window
-  - **Size:** Recommended 800x100 pixels or similar aspect ratio
-  - **Format:** PNG with transparency support
-
-- **SFDLoad.png**
-  - **Location:** Same directory as SFD_GUI.py
-  - **Usage:** Loading screen image shown during startup
-  - **Size:** Recommended 400x300 pixels or similar
-  - **Format:** PNG
-
-- **SFD.ico**
-  - **Location:** Same directory as SFD_GUI.py
-  - **Usage:** Application icon for Windows taskbar/window
-  - **Format:** ICO (Windows icon format)
-  - **Note:** Only used on Windows systems
-
-### Behavior:
-
-- If graphics files are missing, the application will:
-  - Display text labels instead of images
-  - Continue to function normally
-  - Log warnings (non-fatal)
-
-### Creating Custom Graphics:
-
-You can replace these files with your own graphics:
-- Maintain similar dimensions for best appearance
-- Use PNG format for images (supports transparency)
-- Use ICO format for Windows icon
-- Keep file names exactly as listed above
+See the old SFDREADME.md for detailed descriptions of each configuration section. The structure remains the same, but some deprecated options have been removed.
 
 ---
 
@@ -721,11 +1068,26 @@ You can replace these files with your own graphics:
 
 **Thresholds:**
 - **Maximum:** `max_travel_nm` in config.ini (default: 550.0 nautical miles)
+
+---
+
+### 4. Speed Anomaly (Slow)
+
+**Description:** Detects unusually slow travel between positions.
+
+**Detection Logic:**
+- Calculates distance between consecutive AIS positions
+- If distance is below minimum threshold, flags as anomaly
+- May indicate stationary vessel or data issues
+
+**Use Case:** Identifying vessels with suspiciously slow movement patterns.
+
+**Thresholds:**
 - **Minimum:** `min_travel_nm` in config.ini (default: 200.0 nautical miles)
 
 ---
 
-### 4. Course vs. Heading Inconsistency
+### 5. Course vs. Heading Inconsistency
 
 **Description:** Detects large differences between Course Over Ground (COG) and Heading.
 
@@ -744,7 +1106,7 @@ You can replace these files with your own graphics:
 
 ---
 
-### 5. Loitering
+### 6. Loitering
 
 **Description:** Detects vessels staying in a small area for extended periods.
 
@@ -758,13 +1120,9 @@ You can replace these files with your own graphics:
 
 **Use Case:** Identifying vessels engaged in suspicious loitering behavior.
 
-**Thresholds:**
-- **Radius:** `LOITERING_RADIUS_NM` in config.ini (default: 5.0 nautical miles)
-- **Duration:** `LOITERING_DURATION_HOURS` in config.ini (default: 24.0 hours)
-
 ---
 
-### 6. Rendezvous
+### 7. Rendezvous
 
 **Description:** Detects two vessels meeting in close proximity.
 
@@ -778,12 +1136,9 @@ You can replace these files with your own graphics:
 
 **Use Case:** Identifying potential ship-to-ship transfers or meetings.
 
-**Threshold:**
-- **Proximity:** `RENDEZVOUS_PROXIMITY_NM` in config.ini (default: 0.5 nautical miles)
-
 ---
 
-### 7. Identity Spoofing
+### 8. Identity Spoofing
 
 **Description:** Detects multiple vessels using the same MMSI (Maritime Mobile Service Identity).
 
@@ -794,11 +1149,9 @@ You can replace these files with your own graphics:
 
 **Use Case:** Identifying vessels using stolen or duplicated identities.
 
-**Threshold:** Automatic detection (no configurable threshold)
-
 ---
 
-### 8. Zone Violations
+### 9. Zone Violations
 
 **Description:** Detects vessels entering restricted zones.
 
@@ -820,25 +1173,31 @@ After running an analysis, the following files may be generated in the output di
 ### Reports:
 
 - **AIS_Anomalies_Summary.csv** - CSV file with all detected anomalies
-- **AIS_Anomalies_Summary.xlsx** - Excel file with statistics and charts
+- **AIS_Anomalies_Summary.xlsx** - Excel file with statistics and charts (if enabled)
 
 ### Maps:
 
 - **All Anomalies Map.html** - Interactive HTML map showing all anomalies
 - **Vessel Path Maps/** - Individual maps for each vessel (if enabled)
-- **Anomally Heatmap** - Interactive anomaly heatmap of anomalies with muiltple comprehensive and daily view options
+- **Anomaly Heatmap.html** - Interactive anomaly heatmap with multiple comprehensive and daily view options
 
 ### Charts:
 
-- **anomaly_types_distribution.png** - Bar chart showing anomaly type distribution
-- **top_vessels_with_anomalies.png** - Chart showing vessels with most anomalies
-- **anomalies_by_date.png** - Time series chart of anomalies over date range
-- **anomalies_3d_bar_chart.png** - 3D bar chart (if plotly available)
+- **anomaly_types_distribution.png** - Bar chart showing anomaly type distribution (if enabled)
+- **top_vessels_with_anomalies.png** - Chart showing vessels with most anomalies (if enabled)
+- **anomalies_by_date.png** - Time series chart of anomalies over date range (if enabled)
 
 ### Logs:
 
 - **sfd.log** - Analysis log file (from SFD.py)
-- **SDF_GUI.log** - GUI log file (from SFD_GUI.py)
+- **ais_fraud_detection_gui.log** - GUI log file (from SFD_GUI.py)
+- **advanced_analysis.log** - Advanced analysis log file (from advanced_analysis.py)
+
+### Temporary Files:
+
+- **AISDataTemp/** - Temporary directory for downloads and processing
+  - Automatically cleaned up after processing
+  - User is prompted to delete on application exit
 
 ---
 
@@ -909,9 +1268,26 @@ pip install -r requirements.txt
 - Verify all required sections exist
 - Use GUI to save configuration
 
+#### 9. Advanced Analysis not available
+
+**Solution:**
+- Ensure `advanced_analysis.py` is in the same directory as `SFD_GUI.py`
+- Check that all dependencies are installed
+- Review `advanced_analysis.log` for errors
+- Verify that an initial analysis has been completed
+
+#### 10. Download progress stuck
+
+**Solution:**
+- Check internet connection
+- Verify NOAA website is accessible
+- Check `AISDataTemp` directory for partial downloads
+- Review log files for download errors
+- Try clearing cache and re-downloading
+
 ### Getting Help:
 
-1. Check log files (`sfd.log`, `SDF_GUI.log`)
+1. Check log files (`sfd.log`, `ais_fraud_detection_gui.log`, `advanced_analysis.log`)
 2. Enable debug mode: `--debug` flag or set `log_level = DEBUG` in config.ini
 3. Review error messages in console
 4. Verify all dependencies are installed correctly
@@ -920,9 +1296,9 @@ pip install -r requirements.txt
 
 ## License and Credits
 
-**Version:** 1.2 Beta  
+**Version:** 2.0 MVP  
 **Team:** Dreadnaught  
-**Author:** Chris Matherne  
+**Authors:** Chris Matherne, Zhoang, Alex 
 **Event:** Datathon 2025
 
 This software is provided as-is for the Datathon 2025 event.
@@ -935,6 +1311,7 @@ This software is provided as-is for the Datathon 2025 event.
 - **Maritime Regulations:** Refer to IMO and national maritime authority guidelines
 - **GPU Acceleration:** See NVIDIA CUDA or AMD ROCm documentation
 - **AWS S3:** See Amazon S3 documentation for bucket configuration
+- **NOAA AIS Data:** See NOAA AIS data documentation for data format and availability
 
 ---
 

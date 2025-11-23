@@ -24,6 +24,13 @@ import traceback
 import platform
 import subprocess
 
+# Check for tkcalendar
+try:
+    from tkcalendar import DateEntry
+    TKCALENDAR_AVAILABLE = True
+except ImportError:
+    TKCALENDAR_AVAILABLE = False
+
 
 # Try to import optional dependencies
 try:
@@ -54,6 +61,18 @@ try:
     FOLIUM_AVAILABLE = True
 except ImportError:
     FOLIUM_AVAILABLE = False
+
+try:
+    import seaborn as sns
+    SEABORN_AVAILABLE = True
+except ImportError:
+    SEABORN_AVAILABLE = False
+
+try:
+    from sklearn.cluster import KMeans
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
 
 # Set up logging
 logger = logging.getLogger("Advanced_Analysis")
@@ -223,6 +242,72 @@ def format_file_size(size_bytes):
 def get_all_vessel_types():
     """Get list of all possible vessel types (20-99) as defined in GUI."""
     return list(range(20, 100))
+
+
+def get_vessel_type_name(vessel_type):
+    """Get the human-readable name for a vessel type number."""
+    vessel_type_names = {
+        20: 'Wing in ground (WIG), all ships of this type',
+        21: 'Wing in ground (WIG), Hazardous category A',
+        22: 'Wing in ground (WIG), Hazardous category B',
+        23: 'Wing in ground (WIG), Hazardous category C',
+        24: 'Wing in ground (WIG), Hazardous category D',
+        30: 'Fishing',
+        31: 'Towing',
+        32: 'Towing: length exceeds 200m or breadth exceeds 25m',
+        33: 'Dredging or underwater ops',
+        34: 'Diving ops',
+        35: 'Military ops',
+        36: 'Sailing',
+        37: 'Pleasure Craft',
+        38: 'Reserved',
+        39: 'Reserved',
+        40: 'High speed craft (HSC), all ships of this type',
+        41: 'High speed craft (HSC), Hazardous category A',
+        42: 'High speed craft (HSC), Hazardous category B',
+        43: 'High speed craft (HSC), Hazardous category C',
+        44: 'High speed craft (HSC), Hazardous category D',
+        45: 'High speed craft (HSC), Reserved',
+        46: 'High speed craft (HSC), Reserved',
+        47: 'High speed craft (HSC), Reserved',
+        48: 'High speed craft (HSC), Reserved',
+        49: 'High speed craft (HSC), No additional information',
+        50: 'Pilot Vessel',
+        51: 'Search and Rescue vessel',
+        52: 'Tug',
+        53: 'Port Tender',
+        54: 'Anti-pollution equipment',
+        55: 'Law Enforcement',
+        56: 'Spare - Local Vessel',
+        57: 'Spare - Local Vessel',
+        58: 'Medical Transport',
+        59: 'Noncombatant ship (RR Resolution No. 18)',
+        60: 'Passenger, all ships of this type',
+        61: 'Passenger, Hazardous category A',
+        62: 'Passenger, Hazardous category B',
+        63: 'Passenger, Hazardous category C',
+        64: 'Passenger, Hazardous category D',
+        69: 'Passenger, No additional information',
+        70: 'Cargo, all ships of this type',
+        71: 'Cargo, Hazardous category A',
+        72: 'Cargo, Hazardous category B',
+        73: 'Cargo, Hazardous category C',
+        74: 'Cargo, Hazardous category D',
+        79: 'Cargo, No additional information',
+        80: 'Tanker, all ships of this type',
+        81: 'Tanker, Hazardous category A',
+        82: 'Tanker, Hazardous category B',
+        83: 'Tanker, Hazardous category C',
+        84: 'Tanker, Hazardous category D',
+        89: 'Tanker, No additional information',
+        90: 'Other, all ships of this type',
+        91: 'Other, Hazardous category A',
+        92: 'Other, Hazardous category B',
+        93: 'Other, Hazardous category C',
+        94: 'Other, Hazardous category D',
+        99: 'Other, No additional information'
+    }
+    return vessel_type_names.get(int(vessel_type), f'Vessel Type {int(vessel_type)}')
 
 
 def get_all_anomaly_types():
@@ -629,7 +714,13 @@ class AdvancedAnalysis:
             
             if len(df) > chunk_size:
                 logger.info(f"Large dataset detected ({len(df)} records). Writing in chunks...")
-                df.to_csv(output_path, index=False, chunksize=chunk_size)
+                # Write header first
+                df.head(0).to_csv(output_path, index=False, mode='w')
+                # Write data in chunks
+                for i in range(0, len(df), chunk_size):
+                    chunk = df.iloc[i:i+chunk_size]
+                    chunk.to_csv(output_path, index=False, mode='a', header=False)
+                    logger.info(f"Written {min(i+chunk_size, len(df))}/{len(df)} records...")
             else:
                 df.to_csv(output_path, index=False)
             
@@ -676,13 +767,16 @@ class AdvancedAnalysis:
             report_lines.append("<table>")
             report_lines.append(f"<tr><th>Metric</th><th>Value</th></tr>")
             report_lines.append(f"<tr><td>Total Records</td><td>{len(df):,}</td></tr>")
-            report_lines.append(f"<tr><td>Unique Vessels (MMSI)</td><td>{df['MMSI'].nunique():,}</td></tr>")
+            if 'MMSI' in df.columns:
+                report_lines.append(f"<tr><td>Unique Vessels (MMSI)</td><td>{df['MMSI'].nunique():,}</td></tr>")
+            else:
+                report_lines.append(f"<tr><td>Unique Vessels (MMSI)</td><td>N/A</td></tr>")
             
             if 'VesselType' in df.columns:
                 report_lines.append(f"<tr><td>Vessel Types Analyzed</td><td>{df['VesselType'].nunique()}</td></tr>")
             
             if 'VesselName' in df.columns:
-                named_vessels = df[df['VesselName'].notna()]['MMSI'].nunique()
+                named_vessels = df[df['VesselName'].notna()]['MMSI'].nunique() if 'MMSI' in df.columns else 0
                 report_lines.append(f"<tr><td>Vessels with Names</td><td>{named_vessels:,}</td></tr>")
             
             report_lines.append("</table>")
@@ -765,9 +859,19 @@ class AdvancedAnalysis:
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 output_path = os.path.join(self.output_directory, f"Vessel_Statistics_{timestamp}.xlsx")
             
+            if 'MMSI' not in df.columns:
+                logger.error("MMSI column not found in dataset")
+                return None
+            
             vessel_stats = []
             
-            for mmsi in df['MMSI'].unique():
+            unique_mmsis = df['MMSI'].unique()
+            logger.info(f"Processing statistics for {len(unique_mmsis)} vessels...")
+            
+            for idx, mmsi in enumerate(unique_mmsis):
+                if (idx + 1) % 100 == 0:
+                    logger.info(f"Processing vessel {idx + 1}/{len(unique_mmsis)}...")
+                
                 vessel_data = df[df['MMSI'] == mmsi]
                 vessel_anomalies = anomaly_df[anomaly_df['MMSI'] == mmsi] if not anomaly_df.empty and 'MMSI' in anomaly_df.columns else pd.DataFrame()
                 
@@ -815,30 +919,37 @@ class AdvancedAnalysis:
                 
                 vessel_stats.append(stats)
             
+            if not vessel_stats:
+                logger.error("No vessel statistics generated")
+                return None
+            
             stats_df = pd.DataFrame(vessel_stats)
             
             try:
-                with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-                    stats_df.to_excel(writer, sheet_name='Vessel Statistics', index=False)
+                if OPENPYXL_AVAILABLE:
+                    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+                        stats_df.to_excel(writer, sheet_name='Vessel Statistics', index=False)
+                        
+                        summary_data = {
+                            'Metric': ['Total Vessels', 'Vessels with Anomalies', 'Total Anomalies', 'Total Records'],
+                            'Value': [
+                                len(stats_df),
+                                len(stats_df[stats_df['Anomaly_Count'] > 0]) if 'Anomaly_Count' in stats_df.columns else 0,
+                                stats_df['Anomaly_Count'].sum() if 'Anomaly_Count' in stats_df.columns else 0,
+                                stats_df['Total_Records'].sum() if 'Total_Records' in stats_df.columns else 0
+                            ]
+                        }
+                        summary_df = pd.DataFrame(summary_data)
+                        summary_df.to_excel(writer, sheet_name='Summary', index=False)
                     
-                    summary_data = {
-                        'Metric': ['Total Vessels', 'Vessels with Anomalies', 'Total Anomalies', 'Total Records'],
-                        'Value': [
-                            len(stats_df),
-                            len(stats_df[stats_df['Anomaly_Count'] > 0]),
-                            stats_df['Anomaly_Count'].sum(),
-                            stats_df['Total_Records'].sum()
-                        ]
-                    }
-                    summary_df = pd.DataFrame(summary_data)
-                    summary_df.to_excel(writer, sheet_name='Summary', index=False)
-                
-                logger.info(f"Vessel statistics exported to: {output_path}")
-                return output_path
-            except ImportError:
+                    logger.info(f"Vessel statistics exported to: {output_path}")
+                    return output_path
+                else:
+                    raise ImportError("openpyxl not available")
+            except (ImportError, Exception) as e:
                 csv_path = output_path.replace('.xlsx', '.csv')
                 stats_df.to_csv(csv_path, index=False)
-                logger.warning(f"openpyxl not available. Exported to CSV instead: {csv_path}")
+                logger.warning(f"Excel export failed ({str(e)}). Exported to CSV instead: {csv_path}")
                 return csv_path
                 
         except Exception as e:
@@ -948,7 +1059,10 @@ class AdvancedAnalysis:
                 return None
             
             if vessel_types and 'VesselType' in df.columns:
-                df_filtered = df[df['VesselType'].isin(vessel_types)]
+                # Convert vessel types to int for proper comparison, and convert DataFrame column to int
+                vessel_types_int = [int(vt) for vt in vessel_types]
+                df['VesselType'] = pd.to_numeric(df['VesselType'], errors='coerce').astype('Int64')
+                df_filtered = df[df['VesselType'].isin(vessel_types_int)]
                 vessel_mmsis = df_filtered['MMSI'].unique()
                 anomaly_df_filtered = anomaly_df[anomaly_df['MMSI'].isin(vessel_mmsis)]
             else:
@@ -960,7 +1074,10 @@ class AdvancedAnalysis:
             results = {}
             
             if vessel_types and 'VesselType' in df.columns:
-                vessel_counts = df[df['VesselType'].isin(vessel_types)]['VesselType'].value_counts()
+                # Ensure VesselType is int for proper comparison
+                df['VesselType'] = pd.to_numeric(df['VesselType'], errors='coerce').astype('Int64')
+                vessel_types_int = [int(vt) for vt in vessel_types]
+                vessel_counts = df[df['VesselType'].isin(vessel_types_int)]['VesselType'].value_counts()
                 results['vessel_type_counts'] = vessel_counts.to_dict()
             
             if 'AnomalyType' in anomaly_df_filtered.columns:
@@ -968,10 +1085,14 @@ class AdvancedAnalysis:
                 results['anomaly_type_counts'] = anomaly_counts.to_dict()
             
             if 'VesselType' in df.columns and 'AnomalyType' in anomaly_df_filtered.columns:
+                # Ensure VesselType is int for proper merging
+                df['VesselType'] = pd.to_numeric(df['VesselType'], errors='coerce').astype('Int64')
                 mmsi_vessel_map = df[['MMSI', 'VesselType']].drop_duplicates()
                 anomaly_with_vessel = anomaly_df_filtered.merge(mmsi_vessel_map, on='MMSI', how='left')
                 
                 if not anomaly_with_vessel.empty:
+                    # Convert VesselType to int for crosstab
+                    anomaly_with_vessel['VesselType'] = pd.to_numeric(anomaly_with_vessel['VesselType'], errors='coerce').astype('Int64')
                     crosstab = pd.crosstab(anomaly_with_vessel['VesselType'], 
                                           anomaly_with_vessel['AnomalyType'])
                     results['crosstab'] = crosstab
@@ -1123,8 +1244,14 @@ class AdvancedAnalysis:
             logger.error(traceback.format_exc())
             return None
     
-    def vessel_behavior_clustering(self, output_path=None, n_clusters=5):
-        """Apply clustering algorithms to identify similar vessel behaviors."""
+    def vessel_behavior_clustering(self, vessel_types=None, output_path=None, n_clusters=5):
+        """Apply clustering algorithms to identify similar vessel behaviors.
+        
+        Args:
+            vessel_types: List of vessel type integers to filter by. If None, uses all vessels.
+            output_path: Output file path
+            n_clusters: Number of clusters to create
+        """
         try:
             logger.info("Performing vessel behavior clustering...")
             
@@ -1132,6 +1259,26 @@ class AdvancedAnalysis:
             
             if df.empty:
                 logger.error("No data for clustering")
+                return None
+            
+            # Filter by vessel types if specified
+            if vessel_types is not None and len(vessel_types) > 0:
+                if 'VesselType' in df.columns:
+                    # Convert VesselType to int for comparison, handling NaN values
+                    df['VesselType'] = df['VesselType'].astype('Int64')
+                    vessel_types_int = [int(vt) for vt in vessel_types]
+                    df = df[df['VesselType'].isin(vessel_types_int)]
+                    logger.info(f"Filtered to {len(vessel_types)} vessel type(s): {vessel_types}")
+                    
+                    if df.empty:
+                        logger.warning(f"No data found for selected vessel types: {vessel_types}")
+                        logger.info("This may be because these vessel types are not in the current dataset.")
+                        logger.info("The analysis will continue with available data, or you may need to run analysis with these vessel types included.")
+                else:
+                    logger.warning("VesselType column not found, cannot filter by vessel types")
+            
+            if df.empty:
+                logger.error("No data available for clustering")
                 return None
             
             vessel_features = []
@@ -1158,31 +1305,29 @@ class AdvancedAnalysis:
             feature_cols = [col for col in features_df.columns if col != 'MMSI']
             X = features_df[feature_cols].fillna(0)
             
-            try:
-                from sklearn.cluster import KMeans
-                kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
-                features_df['Cluster'] = kmeans.fit_predict(X)
-                
-                if output_path is None:
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    output_path = os.path.join(self.output_directory, f"Vessel_Clustering_{timestamp}.html")
-                
-                if PLOTLY_AVAILABLE and 'lat_range' in feature_cols and 'lon_range' in feature_cols:
-                    fig = px.scatter(features_df, x='lat_range', y='lon_range', 
-                                    color='Cluster', size='total_records',
-                                    hover_data=['MMSI', 'avg_speed'],
-                                    title='Vessel Behavior Clusters')
-                    fig.write_html(output_path)
-                else:
-                    features_df.to_csv(output_path.replace('.html', '.csv'), index=False)
-                    output_path = output_path.replace('.html', '.csv')
-                
-                logger.info(f"Clustering completed: {output_path}")
-                return output_path
-                
-            except ImportError:
+            if not SKLEARN_AVAILABLE:
                 logger.error("scikit-learn not available for clustering")
                 return None
+            
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+            features_df['Cluster'] = kmeans.fit_predict(X)
+            
+            if output_path is None:
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                output_path = os.path.join(self.output_directory, f"Vessel_Clustering_{timestamp}.html")
+            
+            if PLOTLY_AVAILABLE and 'lat_range' in feature_cols and 'lon_range' in feature_cols:
+                fig = px.scatter(features_df, x='lat_range', y='lon_range', 
+                                color='Cluster', size='total_records',
+                                hover_data=['MMSI', 'avg_speed'],
+                                title='Vessel Behavior Clusters')
+                fig.write_html(output_path)
+            else:
+                features_df.to_csv(output_path.replace('.html', '.csv'), index=False)
+                output_path = output_path.replace('.html', '.csv')
+            
+            logger.info(f"Clustering completed: {output_path}")
+            return output_path
                 
         except Exception as e:
             logger.error(f"Error in vessel behavior clustering: {e}")
@@ -1246,6 +1391,174 @@ class AdvancedAnalysis:
                 
         except Exception as e:
             logger.error(f"Error in anomaly frequency analysis: {e}")
+            logger.error(traceback.format_exc())
+            return None
+    
+    def create_custom_chart(self, chart_type, x_column=None, y_column=None, color_column=None, 
+                           group_by=None, aggregation='count', title=None, output_path=None):
+        """Create a custom chart based on user selections.
+        
+        Args:
+            chart_type: Type of chart ('bar', 'scatter', 'line', 'pie', 'stacked_bar', 'timeline', 'histogram', 'box')
+            x_column: Column name for x-axis
+            y_column: Column name for y-axis (if applicable)
+            color_column: Column name for color grouping
+            group_by: Column name to group by
+            aggregation: Aggregation function ('count', 'sum', 'mean', 'max', 'min')
+            title: Chart title
+            output_path: Output file path
+        """
+        try:
+            logger.info(f"Creating custom chart: type={chart_type}, x={x_column}, y={y_column}")
+            
+            df = self.load_cached_data()
+            anomaly_df = self.load_anomaly_data()
+            
+            # Determine which dataset to use
+            if chart_type in ['timeline'] or (x_column and x_column in anomaly_df.columns):
+                data_df = anomaly_df.copy()
+            else:
+                data_df = df.copy()
+            
+            if data_df.empty:
+                logger.error("No data available for chart creation")
+                return None
+            
+            if output_path is None:
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                output_path = os.path.join(self.output_directory, f"Custom_Chart_{chart_type}_{timestamp}.html")
+            
+            if not PLOTLY_AVAILABLE:
+                logger.error("Plotly not available for chart creation")
+                return None
+            
+            # Prepare data based on chart type
+            if group_by and group_by in data_df.columns:
+                if aggregation == 'count':
+                    chart_data = data_df.groupby(group_by).size().reset_index(name='Count')
+                    x_col = group_by
+                    y_col = 'Count'
+                elif aggregation == 'sum' and y_column:
+                    chart_data = data_df.groupby(group_by)[y_column].sum().reset_index()
+                    x_col = group_by
+                    y_col = y_column
+                elif aggregation == 'mean' and y_column:
+                    chart_data = data_df.groupby(group_by)[y_column].mean().reset_index()
+                    x_col = group_by
+                    y_col = y_column
+                elif aggregation == 'max' and y_column:
+                    chart_data = data_df.groupby(group_by)[y_column].max().reset_index()
+                    x_col = group_by
+                    y_col = y_column
+                elif aggregation == 'min' and y_column:
+                    chart_data = data_df.groupby(group_by)[y_column].min().reset_index()
+                    x_col = group_by
+                    y_col = y_column
+                else:
+                    chart_data = data_df.groupby(group_by).size().reset_index(name='Count')
+                    x_col = group_by
+                    y_col = 'Count'
+            else:
+                chart_data = data_df.copy()
+                x_col = x_column
+                y_col = y_column
+            
+            # Create chart based on type
+            fig = None
+            
+            if chart_type == 'bar':
+                if y_col:
+                    fig = px.bar(chart_data, x=x_col, y=y_col, color=color_column, 
+                                title=title or f"Bar Chart: {x_col} vs {y_col}")
+                else:
+                    value_counts = chart_data[x_col].value_counts() if x_col else pd.Series()
+                    fig = go.Figure(data=[go.Bar(x=value_counts.index, y=value_counts.values)])
+                    fig.update_layout(title=title or f"Bar Chart: {x_col}", xaxis_title=x_col, yaxis_title='Count')
+            
+            elif chart_type == 'scatter':
+                if x_col and y_col:
+                    fig = px.scatter(chart_data, x=x_col, y=y_col, color=color_column,
+                                    title=title or f"Scatter Plot: {x_col} vs {y_col}")
+                else:
+                    logger.error("Scatter plot requires both x and y columns")
+                    return None
+            
+            elif chart_type == 'line':
+                if x_col and y_col:
+                    fig = px.line(chart_data, x=x_col, y=y_col, color=color_column,
+                                title=title or f"Line Chart: {x_col} vs {y_col}")
+                else:
+                    logger.error("Line chart requires both x and y columns")
+                    return None
+            
+            elif chart_type == 'pie':
+                if y_col:
+                    fig = px.pie(chart_data, names=x_col, values=y_col, 
+                               title=title or f"Pie Chart: {x_col}")
+                else:
+                    value_counts = chart_data[x_col].value_counts() if x_col else pd.Series()
+                    fig = px.pie(values=value_counts.values, names=value_counts.index,
+                                title=title or f"Pie Chart: {x_col}")
+            
+            elif chart_type == 'stacked_bar':
+                if x_col and y_col and color_column:
+                    fig = px.bar(chart_data, x=x_col, y=y_col, color=color_column,
+                                title=title or f"Stacked Bar Chart: {x_col} by {color_column}",
+                                barmode='stack')
+                else:
+                    logger.error("Stacked bar chart requires x, y, and color columns")
+                    return None
+            
+            elif chart_type == 'timeline':
+                if 'BaseDateTime' in chart_data.columns or 'Date' in chart_data.columns:
+                    date_col = 'BaseDateTime' if 'BaseDateTime' in chart_data.columns else 'Date'
+                    chart_data[date_col] = pd.to_datetime(chart_data[date_col])
+                    chart_data['Date'] = chart_data[date_col].dt.date
+                    
+                    if group_by and group_by in chart_data.columns:
+                        timeline_data = chart_data.groupby(['Date', group_by]).size().reset_index(name='Count')
+                        fig = px.bar(timeline_data, x='Date', y='Count', color=group_by,
+                                    title=title or f"Timeline: {group_by} over time",
+                                    barmode='stack')
+                    else:
+                        timeline_data = chart_data.groupby('Date').size().reset_index(name='Count')
+                        fig = px.bar(timeline_data, x='Date', y='Count',
+                                    title=title or f"Timeline Chart")
+                else:
+                    logger.error("Timeline chart requires a date column (BaseDateTime or Date)")
+                    return None
+            
+            elif chart_type == 'histogram':
+                if x_col:
+                    fig = px.histogram(chart_data, x=x_col, color=color_column,
+                                      title=title or f"Histogram: {x_col}")
+                else:
+                    logger.error("Histogram requires an x column")
+                    return None
+            
+            elif chart_type == 'box':
+                if x_col and y_col:
+                    fig = px.box(chart_data, x=x_col, y=y_col, color=color_column,
+                                title=title or f"Box Plot: {x_col} vs {y_col}")
+                else:
+                    logger.error("Box plot requires both x and y columns")
+                    return None
+            
+            else:
+                logger.error(f"Unsupported chart type: {chart_type}")
+                return None
+            
+            if fig:
+                fig.update_layout(height=600)
+                fig.write_html(output_path)
+                logger.info(f"Custom chart created: {output_path}")
+                return output_path
+            else:
+                logger.error("Failed to create chart")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating custom chart: {e}")
             logger.error(traceback.format_exc())
             return None
     
@@ -1322,12 +1635,35 @@ class AdvancedAnalysis:
             df = self.load_cached_data()
             anomaly_df = self.load_anomaly_data()
             
+            if df.empty:
+                logger.error("No data available for vessel map")
+                return None
+            
+            # Convert MMSI to same type as in dataframe for proper comparison
+            if 'MMSI' in df.columns:
+                # Try to match the type in the dataframe
+                sample_mmsi = df['MMSI'].iloc[0] if len(df) > 0 else None
+                if sample_mmsi is not None:
+                    if isinstance(sample_mmsi, (int, np.integer)):
+                        mmsi = int(mmsi)
+                    elif isinstance(sample_mmsi, (str, np.str_)):
+                        mmsi = str(mmsi)
+                # Also ensure dataframe MMSI is consistent type
+                df['MMSI'] = df['MMSI'].astype(type(mmsi))
+            
             vessel_data = df[df['MMSI'] == mmsi].copy()
-            vessel_anomalies = anomaly_df[anomaly_df['MMSI'] == mmsi].copy() if not anomaly_df.empty and 'MMSI' in anomaly_df.columns else pd.DataFrame()
             
             if vessel_data.empty:
                 logger.error(f"No data found for vessel {mmsi}")
                 return None
+            
+            # Filter anomalies for this vessel
+            if not anomaly_df.empty and 'MMSI' in anomaly_df.columns:
+                # Ensure MMSI types match
+                anomaly_df['MMSI'] = anomaly_df['MMSI'].astype(type(mmsi))
+                vessel_anomalies = anomaly_df[anomaly_df['MMSI'] == mmsi].copy()
+            else:
+                vessel_anomalies = pd.DataFrame()
             
             if output_path is None:
                 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -1338,29 +1674,46 @@ class AdvancedAnalysis:
             m = folium.Map(location=[center_lat, center_lon], zoom_start=8)
             
             if map_type == 'path':
+                # Sort by datetime if available for proper path ordering
+                if 'BaseDateTime' in vessel_data.columns:
+                    vessel_data = vessel_data.sort_values('BaseDateTime')
+                
                 path_coords = [[row['LAT'], row['LON']] for _, row in vessel_data.iterrows() 
                               if pd.notna(row['LAT']) and pd.notna(row['LON'])]
                 if path_coords:
                     folium.PolyLine(path_coords, color='blue', weight=3, opacity=0.7).add_to(m)
                     folium.Marker(path_coords[0], popup='Start', icon=folium.Icon(color='green')).add_to(m)
                     folium.Marker(path_coords[-1], popup='End', icon=folium.Icon(color='red')).add_to(m)
+                    logger.info(f"Path map: Added {len(path_coords)} points for vessel {mmsi}")
+                else:
+                    logger.warning(f"No valid coordinates found for path map")
             
             elif map_type == 'anomaly':
                 if not vessel_anomalies.empty:
+                    marker_count = 0
                     for _, row in vessel_anomalies.iterrows():
                         if pd.notna(row.get('LAT')) and pd.notna(row.get('LON')):
-                            popup_text = f"Anomaly: {row.get('AnomalyType', 'Unknown')}"
+                            popup_text = f"MMSI: {mmsi}<br>Anomaly: {row.get('AnomalyType', 'Unknown')}"
+                            if 'BaseDateTime' in row:
+                                popup_text += f"<br>Time: {row['BaseDateTime']}"
                             folium.Marker(
                                 [row['LAT'], row['LON']],
-                                popup=popup_text,
+                                popup=folium.Popup(popup_text, max_width=200),
                                 icon=folium.Icon(color='red', icon='exclamation-sign')
                             ).add_to(m)
+                            marker_count += 1
+                    logger.info(f"Anomaly map: Added {marker_count} anomaly markers for vessel {mmsi}")
+                else:
+                    logger.warning(f"No anomalies found for vessel {mmsi}")
             
             elif map_type == 'heatmap':
                 heat_data = [[row['LAT'], row['LON'], 1] for _, row in vessel_data.iterrows()
                             if pd.notna(row['LAT']) and pd.notna(row['LON'])]
                 if heat_data:
                     HeatMap(heat_data, radius=15, blur=10).add_to(m)
+                    logger.info(f"Heatmap: Added {len(heat_data)} heat points for vessel {mmsi}")
+                else:
+                    logger.warning(f"No valid coordinates found for heatmap")
             
             m.save(output_path)
             logger.info(f"Vessel map created: {output_path}")
@@ -1414,7 +1767,10 @@ class AdvancedAnalysis:
             
             # Filter by vessel types if specified
             if vessel_types and 'VesselType' in df.columns:
-                df = df[df['VesselType'].isin(vessel_types)].copy()
+                # Convert vessel types to int for proper comparison
+                vessel_types_int = [int(vt) for vt in vessel_types]
+                df['VesselType'] = pd.to_numeric(df['VesselType'], errors='coerce').astype('Int64')
+                df = df[df['VesselType'].isin(vessel_types_int)].copy()
                 vessel_mmsis = df['MMSI'].unique()
                 anomaly_df = anomaly_df[anomaly_df['MMSI'].isin(vessel_mmsis)].copy() if not anomaly_df.empty and 'MMSI' in anomaly_df.columns else pd.DataFrame()
             
@@ -1712,6 +2068,13 @@ class AdvancedAnalysisGUI:
                   command=self._anomaly_frequency_analysis).pack(side=tk.LEFT, padx=5)
         ttk.Label(frame4, text="Analyze frequency and distribution of different anomaly types", 
                  wraplength=500).pack(side=tk.LEFT, padx=5)
+        
+        frame5 = ttk.Frame(tab)
+        frame5.pack(fill=tk.X, pady=5)
+        ttk.Button(frame5, text="Create Custom Chart", width=30,
+                  command=self._create_custom_chart_dialog).pack(side=tk.LEFT, padx=5)
+        ttk.Label(frame5, text="Create custom charts with various types (bar, scatter, pie, etc.)", 
+                 wraplength=500).pack(side=tk.LEFT, padx=5)
     
     def _create_tab3_mapping_tools(self):
         """Create Tab 3: Mapping Tools"""
@@ -1773,12 +2136,32 @@ class AdvancedAnalysisGUI:
         ttk.Label(frame1, text="MMSI:").pack(side=tk.LEFT, padx=5)
         self.extended_mmsi_var = tk.StringVar()
         ttk.Entry(frame1, textvariable=self.extended_mmsi_var, width=15).pack(side=tk.LEFT, padx=5)
-        ttk.Label(frame1, text="Additional Days:").pack(side=tk.LEFT, padx=5)
-        self.extended_start_var = tk.StringVar()
-        self.extended_end_var = tk.StringVar()
-        ttk.Entry(frame1, textvariable=self.extended_start_var, width=12).pack(side=tk.LEFT, padx=2)
-        ttk.Label(frame1, text="to").pack(side=tk.LEFT)
-        ttk.Entry(frame1, textvariable=self.extended_end_var, width=12).pack(side=tk.LEFT, padx=2)
+        ttk.Label(frame1, text="Additional Date Range:").pack(side=tk.LEFT, padx=5)
+        
+        # Use DateEntry if available, otherwise use text entry
+        if TKCALENDAR_AVAILABLE:
+            ttk.Label(frame1, text="Start:").pack(side=tk.LEFT, padx=2)
+            self.extended_start_picker = DateEntry(frame1, width=12, background='darkblue',
+                                                   foreground='white', borderwidth=2, date_pattern='y-mm-dd',
+                                                   state='readonly')
+            self.extended_start_picker.pack(side=tk.LEFT, padx=2)
+            
+            ttk.Label(frame1, text="End:").pack(side=tk.LEFT, padx=2)
+            self.extended_end_picker = DateEntry(frame1, width=12, background='darkblue',
+                                                 foreground='white', borderwidth=2, date_pattern='y-mm-dd',
+                                                 state='readonly')
+            self.extended_end_picker.pack(side=tk.LEFT, padx=2)
+            self.extended_start_var = None
+            self.extended_end_var = None
+        else:
+            self.extended_start_var = tk.StringVar()
+            self.extended_end_var = tk.StringVar()
+            ttk.Entry(frame1, textvariable=self.extended_start_var, width=12).pack(side=tk.LEFT, padx=2)
+            ttk.Label(frame1, text="to").pack(side=tk.LEFT)
+            ttk.Entry(frame1, textvariable=self.extended_end_var, width=12).pack(side=tk.LEFT, padx=2)
+            self.extended_start_picker = None
+            self.extended_end_picker = None
+        
         ttk.Button(frame1, text="Analyze", width=20,
                   command=self._extended_time_analysis).pack(side=tk.LEFT, padx=5)
         
@@ -1874,8 +2257,14 @@ class AdvancedAnalysisGUI:
             df = self.analysis.load_cached_data()
             anomaly_df = self.analysis.load_anomaly_data()
             
-            # Get available types from data
-            available_vessel_types = sorted(df['VesselType'].unique().tolist()) if 'VesselType' in df.columns else []
+            # Get available types from data - convert to int for proper comparison
+            if 'VesselType' in df.columns:
+                # Convert to int, handling NaN values
+                available_vessel_types_raw = df['VesselType'].dropna().unique()
+                available_vessel_types = sorted([int(vt) for vt in available_vessel_types_raw if pd.notna(vt)])
+            else:
+                available_vessel_types = []
+            
             available_anomaly_types_data = sorted(anomaly_df['AnomalyType'].unique().tolist()) if not anomaly_df.empty and 'AnomalyType' in anomaly_df.columns else []
             
             # Map data anomaly types to GUI names
@@ -1908,7 +2297,9 @@ class AdvancedAnalysisGUI:
                 var = tk.BooleanVar()
                 vessel_vars[vtype] = var
                 is_available = vtype in available_vessel_types
-                cb = ttk.Checkbutton(vessel_frame, text=f"Type {vtype}", variable=var, state='normal' if is_available else 'disabled')
+                vessel_name = get_vessel_type_name(vtype)
+                display_text = f"Type {vtype}: {vessel_name}"
+                cb = ttk.Checkbutton(vessel_frame, text=display_text, variable=var, state='normal' if is_available else 'disabled')
                 cb.pack(anchor=tk.W)
                 vessel_checkboxes.append((vtype, var, is_available))
             
@@ -1979,22 +2370,131 @@ class AdvancedAnalysisGUI:
             messagebox.showerror("Error", f"Analysis failed: {str(e)}")
     
     def _vessel_behavior_clustering(self):
-        progress = ProgressDialog(self.window, "Clustering", "Performing vessel clustering...")
+        """Create dialog for vessel behavior clustering with vessel type selection"""
+        dialog = tk.Toplevel(self.window)
+        dialog.title("Vessel Behavior Clustering")
+        dialog.geometry("600x600")
+        
         try:
-            self.status_var.set("Performing vessel clustering...")
-            result = self.analysis.vessel_behavior_clustering()
-            progress.close()
-            if result:
-                self.status_var.set(f"Clustering complete: {result}")
-                messagebox.showinfo("Success", f"Vessel clustering complete:\n{result}")
+            df = self.analysis.load_cached_data()
+            
+            # Get available types from data - convert to int for proper comparison
+            if 'VesselType' in df.columns:
+                # Convert to int, handling NaN values
+                available_vessel_types_raw = df['VesselType'].dropna().unique()
+                available_vessel_types = sorted([int(vt) for vt in available_vessel_types_raw if pd.notna(vt)])
             else:
-                self.status_var.set("Clustering failed")
-                messagebox.showerror("Error", "Failed to perform vessel clustering. Check logs for details.")
+                available_vessel_types = []
+            
+            # Get all possible types
+            all_vessel_types = get_all_vessel_types()
+            
+            # Create scrollable frames
+            canvas = tk.Canvas(dialog)
+            scrollbar = ttk.Scrollbar(dialog, orient="vertical", command=canvas.yview)
+            scrollable_frame = ttk.Frame(canvas)
+            
+            scrollable_frame.bind(
+                "<Configure>",
+                lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            )
+            
+            canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+            canvas.configure(yscrollcommand=scrollbar.set)
+            
+            ttk.Label(scrollable_frame, text="Select Vessel Types for Clustering", 
+                     font=("Arial", 12, "bold")).pack(pady=10)
+            ttk.Label(scrollable_frame, 
+                     text="Select one or more vessel types to analyze. All selected types will be included.",
+                     wraplength=550).pack(pady=5)
+            
+            # Number of clusters
+            ttk.Label(scrollable_frame, text="Number of Clusters:", font=("Arial", 10, "bold")).pack(pady=(10, 5))
+            n_clusters_var = tk.StringVar(value='5')
+            clusters_frame = ttk.Frame(scrollable_frame)
+            clusters_frame.pack(pady=5)
+            ttk.Label(clusters_frame, text="Clusters:").pack(side=tk.LEFT, padx=5)
+            clusters_entry = ttk.Entry(clusters_frame, textvariable=n_clusters_var, width=10)
+            clusters_entry.pack(side=tk.LEFT, padx=5)
+            
+            # Vessel type selection
+            ttk.Label(scrollable_frame, text="Vessel Types:", font=("Arial", 10, "bold")).pack(pady=(10, 5))
+            
+            vessel_vars = {}
+            vessel_checkboxes = []
+            
+            for vtype in all_vessel_types:
+                var = tk.BooleanVar()
+                vessel_vars[vtype] = var
+                vessel_name = get_vessel_type_name(vtype)
+                
+                # Check if this type is in the current data
+                is_in_data = vtype in available_vessel_types
+                
+                # Make all types selectable, but indicate which are in data
+                if is_in_data:
+                    display_text = f"Type {vtype}: {vessel_name} [In Data]"
+                else:
+                    display_text = f"Type {vtype}: {vessel_name} [Not in Current Data]"
+                
+                # All types are enabled for selection
+                cb = ttk.Checkbutton(scrollable_frame, text=display_text, variable=var, 
+                                   state='normal')
+                cb.pack(anchor=tk.W, padx=20, pady=2)
+                vessel_checkboxes.append((vtype, var, True))  # All are available for selection
+            
+            canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+            
+            def perform_clustering():
+                selected_types = [vtype for vtype, var, is_available in vessel_checkboxes 
+                                if var.get()]
+                
+                if not selected_types:
+                    messagebox.showwarning("Warning", "No vessel types selected. Please select at least one vessel type.")
+                    return
+                
+                try:
+                    n_clusters = int(n_clusters_var.get())
+                    if n_clusters < 2:
+                        messagebox.showerror("Error", "Number of clusters must be at least 2")
+                        return
+                except ValueError:
+                    messagebox.showerror("Error", "Number of clusters must be a valid integer")
+                    return
+                
+                dialog.destroy()
+                progress = ProgressDialog(self.window, "Clustering", "Performing vessel clustering...")
+                try:
+                    self.status_var.set("Performing vessel clustering...")
+                    result = self.analysis.vessel_behavior_clustering(
+                        vessel_types=selected_types if selected_types else None,
+                        n_clusters=n_clusters
+                    )
+                    progress.close()
+                    if result:
+                        self.status_var.set(f"Clustering complete: {result}")
+                        messagebox.showinfo("Success", f"Vessel clustering complete:\n{result}")
+                    else:
+                        self.status_var.set("Clustering failed")
+                        messagebox.showerror("Error", "Failed to perform vessel clustering. Check logs for details.")
+                except Exception as e:
+                    progress.close()
+                    self.status_var.set("Clustering failed")
+                    logger.error(f"Error in clustering: {e}")
+                    logger.error(traceback.format_exc())
+                    messagebox.showerror("Error", f"Clustering failed: {str(e)}")
+            
+            button_frame = ttk.Frame(dialog)
+            button_frame.pack(pady=10)
+            ttk.Button(button_frame, text="Perform Clustering", command=perform_clustering).pack(side=tk.LEFT, padx=5)
+            ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+            
         except Exception as e:
-            progress.close()
-            self.status_var.set("Clustering failed")
-            logger.error(f"Error in clustering: {e}")
-            messagebox.showerror("Error", f"Clustering failed: {str(e)}")
+            logger.error(f"Error creating clustering dialog: {e}")
+            logger.error(traceback.format_exc())
+            messagebox.showerror("Error", f"Error creating clustering dialog: {e}")
+            dialog.destroy()
     
     def _anomaly_frequency_analysis(self):
         progress = ProgressDialog(self.window, "Analyzing Frequency", "Analyzing anomaly frequency...")
@@ -2013,6 +2513,165 @@ class AdvancedAnalysisGUI:
             self.status_var.set("Analysis failed")
             logger.error(f"Error in frequency analysis: {e}")
             messagebox.showerror("Error", f"Analysis failed: {str(e)}")
+    
+    def _create_custom_chart_dialog(self):
+        """Create dialog for custom chart creation"""
+        dialog = tk.Toplevel(self.window)
+        dialog.title("Create Custom Chart")
+        dialog.geometry("700x650")
+        
+        try:
+            df = self.analysis.load_cached_data()
+            anomaly_df = self.analysis.load_anomaly_data()
+            
+            # Get available columns from both datasets
+            df_columns = sorted([col for col in df.columns if col not in ['MMSI', 'LAT', 'LON']]) if not df.empty else []
+            anomaly_columns = sorted([col for col in anomaly_df.columns if col not in ['MMSI', 'LAT', 'LON']]) if not anomaly_df.empty else []
+            all_columns = sorted(list(set(df_columns + anomaly_columns)))
+            
+            # Chart type selection
+            ttk.Label(dialog, text="Chart Type:", font=("Arial", 10, "bold")).pack(pady=5, anchor=tk.W, padx=10)
+            chart_type_var = tk.StringVar(value='bar')
+            chart_types = [
+                ('Bar Chart', 'bar'),
+                ('Scatter Plot', 'scatter'),
+                ('Line Chart', 'line'),
+                ('Pie Chart', 'pie'),
+                ('Stacked Bar Chart', 'stacked_bar'),
+                ('Timeline', 'timeline'),
+                ('Histogram', 'histogram'),
+                ('Box Plot', 'box')
+            ]
+            
+            chart_frame = ttk.Frame(dialog)
+            chart_frame.pack(fill=tk.X, padx=10, pady=5)
+            # Arrange chart types in a grid for better layout
+            row = 0
+            col = 0
+            for text, value in chart_types:
+                ttk.Radiobutton(chart_frame, text=text, variable=chart_type_var, value=value).grid(row=row, column=col, padx=5, pady=2, sticky=tk.W)
+                col += 1
+                if col > 3:  # 4 columns per row
+                    col = 0
+                    row += 1
+            
+            # X-axis column
+            ttk.Label(dialog, text="X-Axis Column:", font=("Arial", 10, "bold")).pack(pady=(10, 5), anchor=tk.W, padx=10)
+            x_column_var = tk.StringVar()
+            x_combo = ttk.Combobox(dialog, textvariable=x_column_var, values=all_columns, width=40, state='readonly')
+            x_combo.pack(padx=10, pady=5, anchor=tk.W)
+            
+            # Y-axis column (for charts that need it)
+            ttk.Label(dialog, text="Y-Axis Column (optional):", font=("Arial", 10, "bold")).pack(pady=(10, 5), anchor=tk.W, padx=10)
+            y_column_var = tk.StringVar()
+            y_combo = ttk.Combobox(dialog, textvariable=y_column_var, values=all_columns, width=40, state='readonly')
+            y_combo.pack(padx=10, pady=5, anchor=tk.W)
+            
+            # Color/Group by column
+            ttk.Label(dialog, text="Color/Group By Column (optional):", font=("Arial", 10, "bold")).pack(pady=(10, 5), anchor=tk.W, padx=10)
+            color_column_var = tk.StringVar()
+            color_combo = ttk.Combobox(dialog, textvariable=color_column_var, values=all_columns, width=40, state='readonly')
+            color_combo.pack(padx=10, pady=5, anchor=tk.W)
+            
+            # Group by column
+            ttk.Label(dialog, text="Group By Column (optional):", font=("Arial", 10, "bold")).pack(pady=(10, 5), anchor=tk.W, padx=10)
+            group_by_var = tk.StringVar()
+            group_combo = ttk.Combobox(dialog, textvariable=group_by_var, values=all_columns, width=40, state='readonly')
+            group_combo.pack(padx=10, pady=5, anchor=tk.W)
+            
+            # Aggregation method
+            ttk.Label(dialog, text="Aggregation (if grouping):", font=("Arial", 10, "bold")).pack(pady=(10, 5), anchor=tk.W, padx=10)
+            aggregation_var = tk.StringVar(value='count')
+            agg_frame = ttk.Frame(dialog)
+            agg_frame.pack(fill=tk.X, padx=10, pady=5)
+            for agg in ['count', 'sum', 'mean', 'max', 'min']:
+                ttk.Radiobutton(agg_frame, text=agg.capitalize(), variable=aggregation_var, value=agg).pack(side=tk.LEFT, padx=5)
+            
+            # Chart title
+            ttk.Label(dialog, text="Chart Title (optional):", font=("Arial", 10, "bold")).pack(pady=(10, 5), anchor=tk.W, padx=10)
+            title_var = tk.StringVar()
+            title_entry = ttk.Entry(dialog, textvariable=title_var, width=50)
+            title_entry.pack(padx=10, pady=5, anchor=tk.W)
+            
+            def update_requirements():
+                """Update UI based on selected chart type"""
+                chart_type = chart_type_var.get()
+                
+                # Enable/disable fields based on chart type
+                if chart_type in ['scatter', 'line', 'box', 'stacked_bar']:
+                    y_combo.config(state='readonly')
+                else:
+                    y_combo.config(state='disabled')
+                    y_column_var.set('')
+                
+                if chart_type == 'timeline':
+                    x_combo.config(state='disabled')
+                    x_column_var.set('')
+                else:
+                    x_combo.config(state='readonly')
+            
+            chart_type_var.trace('w', lambda *args: update_requirements())
+            update_requirements()
+            
+            def create_chart():
+                chart_type = chart_type_var.get()
+                x_column = x_column_var.get() if x_column_var.get() else None
+                y_column = y_column_var.get() if y_column_var.get() else None
+                color_column = color_column_var.get() if color_column_var.get() else None
+                group_by = group_by_var.get() if group_by_var.get() else None
+                aggregation = aggregation_var.get()
+                title = title_var.get() if title_var.get() else None
+                
+                # Validation
+                if chart_type in ['scatter', 'line', 'box', 'stacked_bar'] and not y_column:
+                    messagebox.showerror("Error", f"{chart_type.capitalize()} chart requires a Y-axis column")
+                    return
+                
+                if chart_type != 'timeline' and not x_column:
+                    messagebox.showerror("Error", "Please select an X-axis column")
+                    return
+                
+                if chart_type == 'stacked_bar' and not color_column:
+                    messagebox.showerror("Error", "Stacked bar chart requires a color/group by column")
+                    return
+                
+                dialog.destroy()
+                progress = ProgressDialog(self.window, "Creating Chart", f"Creating {chart_type} chart...")
+                try:
+                    self.status_var.set(f"Creating {chart_type} chart...")
+                    result = self.analysis.create_custom_chart(
+                        chart_type=chart_type,
+                        x_column=x_column,
+                        y_column=y_column,
+                        color_column=color_column,
+                        group_by=group_by,
+                        aggregation=aggregation,
+                        title=title
+                    )
+                    progress.close()
+                    if result:
+                        self.status_var.set(f"Chart created: {result}")
+                        messagebox.showinfo("Success", f"Chart created:\n{result}")
+                    else:
+                        self.status_var.set("Chart creation failed")
+                        messagebox.showerror("Error", "Failed to create chart. Check logs for details.")
+                except Exception as e:
+                    progress.close()
+                    self.status_var.set("Chart creation failed")
+                    logger.error(f"Error creating chart: {e}")
+                    logger.error(traceback.format_exc())
+                    messagebox.showerror("Error", f"Chart creation failed: {str(e)}")
+            
+            button_frame = ttk.Frame(dialog)
+            button_frame.pack(pady=20)
+            ttk.Button(button_frame, text="Create Chart", command=create_chart).pack(side=tk.LEFT, padx=5)
+            ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
+            
+        except Exception as e:
+            logger.error(f"Error creating chart dialog: {e}")
+            logger.error(traceback.format_exc())
+            messagebox.showerror("Error", f"Error creating chart dialog: {e}")
+            dialog.destroy()
     
     def _full_spectrum_map_dialog(self):
         dialog = tk.Toplevel(self.window)
@@ -2143,8 +2802,14 @@ class AdvancedAnalysisGUI:
             df = self.analysis.load_cached_data()
             anomaly_df = self.analysis.load_anomaly_data()
             
-            # Get available types from data
-            available_vessel_types = sorted(df['VesselType'].unique().tolist()) if 'VesselType' in df.columns else []
+            # Get available types from data - convert to int for proper comparison
+            if 'VesselType' in df.columns:
+                # Convert to int, handling NaN values
+                available_vessel_types_raw = df['VesselType'].dropna().unique()
+                available_vessel_types = sorted([int(vt) for vt in available_vessel_types_raw if pd.notna(vt)])
+            else:
+                available_vessel_types = []
+            
             available_anomaly_types_data = sorted(anomaly_df['AnomalyType'].unique().tolist()) if not anomaly_df.empty and 'AnomalyType' in anomaly_df.columns else []
             available_anomaly_types_gui = [map_anomaly_type_data_to_gui(at) for at in available_anomaly_types_data]
             
@@ -2170,7 +2835,9 @@ class AdvancedAnalysisGUI:
             for vtype in available_vessel_types:
                 var = tk.BooleanVar()
                 vessel_vars[vtype] = var
-                cb = ttk.Checkbutton(vessel_frame, text=f"Type {vtype}", variable=var)
+                vessel_name = get_vessel_type_name(vtype)
+                display_text = f"Type {vtype}: {vessel_name}"
+                cb = ttk.Checkbutton(vessel_frame, text=display_text, variable=var)
                 cb.pack(anchor=tk.W)
                 vessel_checkboxes.append((vtype, var))
             
@@ -2239,11 +2906,21 @@ class AdvancedAnalysisGUI:
     
     def _extended_time_analysis(self):
         mmsi_str = self.extended_mmsi_var.get()
-        start_date = self.extended_start_var.get()
-        end_date = self.extended_end_var.get()
         
-        if not mmsi_str or not start_date or not end_date:
-            messagebox.showerror("Error", "Please fill in all fields")
+        # Get dates from DateEntry if available, otherwise from text entry
+        if TKCALENDAR_AVAILABLE and self.extended_start_picker is not None:
+            start_date = self.extended_start_picker.get_date().strftime('%Y-%m-%d')
+            end_date = self.extended_end_picker.get_date().strftime('%Y-%m-%d')
+        else:
+            start_date = self.extended_start_var.get() if self.extended_start_var else None
+            end_date = self.extended_end_var.get() if self.extended_end_var else None
+        
+        if not mmsi_str:
+            messagebox.showerror("Error", "Please enter an MMSI number")
+            return
+        
+        if not start_date or not end_date:
+            messagebox.showerror("Error", "Please select both start and end dates")
             return
         
         try:
@@ -2267,6 +2944,7 @@ class AdvancedAnalysisGUI:
             progress.close()
             self.status_var.set("Analysis failed")
             logger.error(f"Error in extended analysis: {e}")
+            logger.error(traceback.format_exc())
             messagebox.showerror("Error", f"Analysis failed: {str(e)}")
 
 

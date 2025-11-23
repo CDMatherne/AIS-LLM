@@ -350,10 +350,7 @@ logger.info(f"Python executable: {sys.executable}")
 # The application should still run without GPU support, so we don't attempt installation
 # The GPU installation is handled separately by the GUI when the user explicitly requests it
 
-# Initialize logger
-logger = logging.getLogger(__name__)
-
-# Advanced Analysis import (after logger is initialized)
+# Advanced Analysis import (logger is already initialized at line 343)
 try:
     from advanced_analysis import AdvancedAnalysis
     ADVANCED_ANALYSIS_AVAILABLE = True
@@ -451,7 +448,7 @@ def add_lat_lon_grid_lines(m_or_fg, lat_start=-90, lat_end=90, lon_start=-180, l
                 points = [[lat, lon_range[0]], [lat, lon_range[1]]]
                 folium.PolyLine(
                     points, 
-                    tooltip=f"Latitude: {lat}°", 
+                    tooltip=f"Latitude: {lat} degrees", 
                     color='#ff6b6b', 
                     weight=1.5, 
                     opacity=0.6, 
@@ -462,14 +459,14 @@ def add_lat_lon_grid_lines(m_or_fg, lat_start=-90, lat_end=90, lon_start=-180, l
                 # Add label every label_step degrees (only at select intervals)
                 if lat % label_step == 0:
                     # Both left and right side labels
-                    html_left = f'<div class="coordinate-label">{lat}°N</div>'
+                    html_left = f'<div class="coordinate-label">{lat} deg N</div>'
                     folium.Marker(
                         [lat, lon_range[0]],
                         icon=folium.DivIcon(html=html_left)
                     ).add_to(m)
                     
                     # Right side label
-                    html_right = f'<div class="coordinate-label">{lat}°N</div>'
+                    html_right = f'<div class="coordinate-label">{lat} deg N</div>'
                     folium.Marker(
                         [lat, lon_range[1]],
                         icon=folium.DivIcon(html=html_right)
@@ -485,7 +482,7 @@ def add_lat_lon_grid_lines(m_or_fg, lat_start=-90, lat_end=90, lon_start=-180, l
                 points = [[lat_range[0], lon], [lat_range[1], lon]]
                 folium.PolyLine(
                     points, 
-                    tooltip=f"Longitude: {lon}°", 
+                    tooltip=f"Longitude: {lon} degrees", 
                     color='#4ecdc4', 
                     weight=1.5, 
                     opacity=0.6, 
@@ -496,14 +493,14 @@ def add_lat_lon_grid_lines(m_or_fg, lat_start=-90, lat_end=90, lon_start=-180, l
                 # Add label every label_step degrees (only at select intervals)
                 if lon % label_step == 0:
                     # Both bottom and top labels
-                    html_bottom = f'<div class="coordinate-label">{lon}°E</div>'
+                    html_bottom = f'<div class="coordinate-label">{lon} deg E</div>'
                     folium.Marker(
                         [lat_range[0], lon],
                         icon=folium.DivIcon(html=html_bottom)
                     ).add_to(m)
                     
                     # Top label
-                    html_top = f'<div class="coordinate-label">{lon}°E</div>'
+                    html_top = f'<div class="coordinate-label">{lon} deg E</div>'
                     folium.Marker(
                         [lat_range[1], lon],
                         icon=folium.DivIcon(html=html_top)
@@ -839,15 +836,6 @@ def get_files_for_date_range(data_dir, start_date, end_date, config=None):
     except Exception as e:
         logger.error(f"Error finding files in {data_dir}: {e}")
         return [], []
-
-
-# Note: get_most_recent_files function has been removed, as we now only support explicit date ranges
-# See get_files_for_date_range for the current implementation
-def get_most_recent_files(data_dir, num_days):
-    """DEPRECATED: This function has been removed as we now only support explicit date ranges."""
-    logger.warning("get_most_recent_files is deprecated. Use get_files_for_date_range instead.")
-    # Return empty list with expected tuple structure [(file_path, date), ...]    
-    return []
 
 
 def load_config(config_file='config.ini'):
@@ -1359,7 +1347,7 @@ def check_cached_data(file_path, config):
     # Check if the cache file exists
     if os.path.exists(cache_path):
         try:
-            logger.info(f"🔄 CACHE: Using cached data for {os.path.basename(file_path)}")
+            logger.info(f"CACHE: Using cached data for {os.path.basename(file_path)}")
             if config.get('USE_DASK', True):
                 df = dd.read_parquet(cache_path).compute()
             else:
@@ -1390,7 +1378,7 @@ def save_to_cache(df, cache_path):
         temp_path = cache_path + ".tmp"
         df.to_parquet(temp_path, index=False)
         shutil.move(temp_path, cache_path)
-        logger.info(f"🔄 CACHE: Data saved to cache: {os.path.basename(cache_path)}")
+        logger.info(f"CACHE: Data saved to cache: {os.path.basename(cache_path)}")
         return True
     except Exception as e:
         logger.warning(f"Failed to save data to cache: {e}")
@@ -1536,8 +1524,8 @@ def load_and_preprocess_day(file_path, config, use_dask=True):
         for col in ['LAT', 'LON', 'SOG', 'COG', 'Heading']:
             if col in df.columns and df[col].dtype == object:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-                
-        """ # Basic data cleaning
+        
+        # Basic data cleaning
         # Remove rows with missing position data
         df = df.dropna(subset=['LAT', 'LON'])
         
@@ -1549,8 +1537,6 @@ def load_and_preprocess_day(file_path, config, use_dask=True):
         speed_threshold = config.get('SPEED_THRESHOLD', 102)  # Default to 102 knots (max realistic speed)
         if 'SOG' in df.columns:
             df = df[df['SOG'] <= speed_threshold]
-            
-        return df"""
         
         # Save successfully loaded data to cache before returning
         if not df.empty and cache_path:
@@ -1758,11 +1744,11 @@ def create_map_visualization(anomalies_df, output_path, config=None):
                     popup_text += f"<b>Speed (knots):</b> {sogs[i]:.1f}<br>"
                 if has_course_anomaly and course_anomalies[i]:
                     if cogs is not None:
-                        popup_text += f"<b>COG:</b> {cogs[i]:.1f}°<br>"
+                        popup_text += f"<b>COG:</b> {cogs[i]:.1f} deg<br>"
                     if headings is not None:
-                        popup_text += f"<b>Heading:</b> {headings[i]:.1f}°<br>"
+                        popup_text += f"<b>Heading:</b> {headings[i]:.1f} deg<br>"
                     if course_heading_diffs is not None:
-                        popup_text += f"<b>Difference:</b> {course_heading_diffs[i]:.1f}°<br>"
+                        popup_text += f"<b>Difference:</b> {course_heading_diffs[i]:.1f} deg<br>"
                 
                 # Choose icon color based on anomaly type
                 anomaly_type = anomaly_types[i]
@@ -2433,14 +2419,14 @@ def create_anomalies_heatmap(all_anomalies_df, config, output_dir):
     fg_all_anomalies = folium.FeatureGroup(name="All Anomalies (All Days)", show=True)
     
     # Sub-groups under "All Anomalies (All Days)" - All Data views
-    fg_ais_on_all = folium.FeatureGroup(name="  └─ All Data - AIS Beacon On", show=False)
-    fg_ais_off_all = folium.FeatureGroup(name="  └─ All Data - AIS Beacon Off", show=False)
-    fg_course_all = folium.FeatureGroup(name="  └─ All Data - Course Anomalies", show=False)
-    fg_speed_all = folium.FeatureGroup(name="  └─ All Data - Speed Anomalies", show=False)
-    fg_loitering_all = folium.FeatureGroup(name="  └─ All Data - Loitering", show=False)
-    fg_rendezvous_all = folium.FeatureGroup(name="  └─ All Data - Rendezvous", show=False)
-    fg_spoofing_all = folium.FeatureGroup(name="  └─ All Data - Identity Spoofing", show=False)
-    fg_zone_all = folium.FeatureGroup(name="  └─ All Data - Zone Violations", show=False)
+    fg_ais_on_all = folium.FeatureGroup(name="  |-- All Data - AIS Beacon On", show=False)
+    fg_ais_off_all = folium.FeatureGroup(name="  |-- All Data - AIS Beacon Off", show=False)
+    fg_course_all = folium.FeatureGroup(name="  |-- All Data - Course Anomalies", show=False)
+    fg_speed_all = folium.FeatureGroup(name="  |-- All Data - Speed Anomalies", show=False)
+    fg_loitering_all = folium.FeatureGroup(name="  |-- All Data - Loitering", show=False)
+    fg_rendezvous_all = folium.FeatureGroup(name="  |-- All Data - Rendezvous", show=False)
+    fg_spoofing_all = folium.FeatureGroup(name="  |-- All Data - Identity Spoofing", show=False)
+    fg_zone_all = folium.FeatureGroup(name="  |-- All Data - Zone Violations", show=False)
     
     # Add heatmaps to their respective feature groups
     HeatMap(heat_data_all).add_to(fg_all_anomalies)
@@ -2489,14 +2475,14 @@ def create_anomalies_heatmap(all_anomalies_df, config, output_dir):
         # Only add type-specific groups if AnomalyType column exists
         if 'AnomalyType' in all_anomalies_df.columns:
             day_groups[date_str].update({
-                'ais_on': folium.FeatureGroup(name=f"  └─ Day {date_str} - AIS Beacon On", show=False),
-                'ais_off': folium.FeatureGroup(name=f"  └─ Day {date_str} - AIS Beacon Off", show=False),
-                'course': folium.FeatureGroup(name=f"  └─ Day {date_str} - Course Anomalies", show=False),
-                'speed': folium.FeatureGroup(name=f"  └─ Day {date_str} - Speed Anomalies", show=False),
-                'loitering': folium.FeatureGroup(name=f"  └─ Day {date_str} - Loitering", show=False),
-                'rendezvous': folium.FeatureGroup(name=f"  └─ Day {date_str} - Rendezvous", show=False),
-                'spoofing': folium.FeatureGroup(name=f"  └─ Day {date_str} - Identity Spoofing", show=False),
-                'zone': folium.FeatureGroup(name=f"  └─ Day {date_str} - Zone Violations", show=False)
+                'ais_on': folium.FeatureGroup(name=f"  |-- Day {date_str} - AIS Beacon On", show=False),
+                'ais_off': folium.FeatureGroup(name=f"  |-- Day {date_str} - AIS Beacon Off", show=False),
+                'course': folium.FeatureGroup(name=f"  |-- Day {date_str} - Course Anomalies", show=False),
+                'speed': folium.FeatureGroup(name=f"  |-- Day {date_str} - Speed Anomalies", show=False),
+                'loitering': folium.FeatureGroup(name=f"  |-- Day {date_str} - Loitering", show=False),
+                'rendezvous': folium.FeatureGroup(name=f"  |-- Day {date_str} - Rendezvous", show=False),
+                'spoofing': folium.FeatureGroup(name=f"  |-- Day {date_str} - Identity Spoofing", show=False),
+                'zone': folium.FeatureGroup(name=f"  |-- Day {date_str} - Zone Violations", show=False)
             })
         
         # Create heatmap data for this date
@@ -2679,7 +2665,7 @@ def create_vessel_path_maps(all_daily_data, selected_dates, config, output_dir):
                     if 'SOG' in vessel_data.columns:
                         point_popup += f"Speed: {row['SOG']} knots<br>"
                     if 'COG' in vessel_data.columns:
-                        point_popup += f"Course: {row['COG']}°<br>"
+                        point_popup += f"Course: {row['COG']} deg<br>"
                     
                     # Add the circle marker
                     folium.CircleMarker(
@@ -2798,7 +2784,7 @@ def create_vessel_path_maps(all_daily_data, selected_dates, config, output_dir):
                         if 'SOG' in vessel_data.columns:
                             point_popup += f"Speed: {row['SOG']} knots<br>"
                         if 'COG' in vessel_data.columns:
-                            point_popup += f"Course: {row['COG']}°<br>"
+                            point_popup += f"Course: {row['COG']} deg<br>"
                         
                         # Add the circle marker
                         folium.CircleMarker(
@@ -3991,10 +3977,10 @@ def main():
                        help='MMSI number for vessel-specific analysis (required for vessel-map)')
     parser.add_argument('--map-type', type=str, choices=['path', 'anomaly', 'heatmap'],
                        help='Map type for vessel-map (default: path)')
-    parser.add_argument('--show-pins', action='store_true', default=True,
-                       help='Show pins on full spectrum map (default: True)')
-    parser.add_argument('--show-heatmap', action='store_true', default=True,
-                       help='Show heatmap on full spectrum map (default: True)')
+    parser.add_argument('--no-show-pins', dest='show_pins', action='store_false', default=True,
+                       help='Hide pins on full spectrum map (default: show pins)')
+    parser.add_argument('--no-show-heatmap', dest='show_heatmap', action='store_false', default=True,
+                       help='Hide heatmap on full spectrum map (default: show heatmap)')
     parser.add_argument('--extended-start-date', type=str,
                        help='Start date for extended time analysis (YYYY-MM-DD)')
     parser.add_argument('--extended-end-date', type=str,
